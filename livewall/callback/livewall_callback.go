@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl     = "https://as.dun.163yun.com/v2/livewall/callback/results"
+	apiUrl     = "http://as.dun.163yun.com/v2/livewall/callback/results"
 	version    = "v2"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -73,6 +73,50 @@ func genSignature(params url.Values) string {
 	return hex.EncodeToString(md5Reader.Sum(nil))
 }
 
+// 机审信息
+func parseMachine(evidences map[string]interface{}, taskId string) {
+	fmt.Printf("=== 视频机审信息 ===")
+	evidence, _ := evidences["evidence"].(map[string]interface{})
+	labels, _ := evidences["labels"].([]interface{})
+	_, _ = evidence["type"].(json.Number).Int64()
+	_, _ = evidence["url"].(string)
+	_, _ = evidence["beginTime"].(json.Number).Int64()
+	_, _ = evidence["endTime"].(json.Number).Int64()
+
+	for _, labelItem := range labels {
+		if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
+			_, _ = labelItemMap["label"].(json.Number).Int64()
+			_, _ = labelItemMap["level"].(json.Number).Int64()
+			_, _ = labelItemMap["rate"].(json.Number).Float64()
+			_ = labelItemMap["subLabels"].([]interface{})
+		}
+	}
+	fmt.Printf("Machine Evidence: %s", evidence)
+	fmt.Printf("Machine Labels: %s", labels)
+	fmt.Printf("================")
+}
+
+// 人审信息
+func parseHuman(reviewEvidences map[string]interface{}, taskId string) {
+	fmt.Printf("=== 人审信息 ===")
+	action, _ := reviewEvidences["action"].(json.Number).Int64()
+	_, _ = reviewEvidences["actionTime"].(json.Number).Int64()
+	_, _ = reviewEvidences["label"].(json.Number).Int64()
+	_, _ = reviewEvidences["detail"].(string)
+	warnCount, _ := reviewEvidences["warnCount"].(json.Number).Int64()
+	evidence, _ := reviewEvidences["evidence"].([]interface{})
+
+	if action == 2 {
+		fmt.Printf("警告, taskId:%s, 警告次数:%d, 证据信息:%s", taskId, warnCount, evidence)
+	} else if action == 3 {
+		fmt.Printf("断流, taskId:%s, 警告次数:%d, 证据信息:%s", taskId, warnCount, evidence)
+	} else {
+		fmt.Printf("人审信息：%s", reviewEvidences)
+	}
+
+	fmt.Printf("================")
+}
+
 func main() {
 	ret := check()
 
@@ -80,21 +124,26 @@ func main() {
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		resultArray, _ := ret.Get("result").Array()
-		for _, result := range resultArray {
-			if resultMap, ok := result.(map[string]interface{}); ok {
-				taskId := resultMap["taskId"].(string)
-				callback := resultMap["callback"].(string)
-				action, _ := resultMap["action"].(json.Number).Int64()
-				warnCount, _ := resultMap["warnCount"].(json.Number).Int64()
-				evidence := resultMap["evidence"].(map[string]interface{})
-				//status, _ := resultMap["status"].(json.Number).Int64()
-				//actionTime, _ := resultMap["actionTime"].(json.Number).Int64()
-				//label, _ := resultMap["label"].(json.Number).Int64()
-				//detail := resultMap["detail"].(string)
-				if action == 2 { //警告
-					fmt.Printf("警告, taskId: %s, callback: %s, 总警告次数: %d, 证据信息: %s", taskId, callback, warnCount, evidence)
-				} else if action == 3 { //断流
-					fmt.Printf("断流, taskId: %s, callback: %s, 总警告次数: %d, 证据信息: %s", taskId, callback, warnCount, evidence)
+		if resultArray == nil || len(resultArray) == 0 {
+			fmt.Printf("暂时没有结果需要获取，请稍后重试!")
+		} else {
+			for _, result := range resultArray {
+				if resultMap, ok := result.(map[string]interface{}); ok {
+					taskId := resultMap["taskId"].(string)
+					callback := resultMap["callback"].(string)
+					dataId := resultMap["dataId"].(string)
+					status, _ := resultMap["status"].(json.Number).Int64()
+					fmt.Printf("taskId:%s, dataId:%s, callback:%s, status:%d", taskId, dataId, callback, status)
+
+					evidences, _ := resultMap["evidences"].(map[string]interface{})
+					reviewEvidences, _ := resultMap["reviewEvidences"].(map[string]interface{}) //status, _ := resultMap["status"].(json.Number).Int64()
+					if evidences != nil {
+						parseMachine(evidences, taskId)
+					} else if reviewEvidences != nil {
+						parseHuman(reviewEvidences, taskId)
+					} else {
+						fmt.Printf("Invalid Result: %s", result)
+					}
 				}
 			}
 		}

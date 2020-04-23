@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl     = "https://as.dun.163yun.com/v3/audio/callback/results"
+	apiUrl     = "http://as.dun.163yun.com/v3/audio/callback/results"
 	version    = "v3.1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -80,7 +80,7 @@ func main() {
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		resultArray, _ := ret.Get("antispam").Array()
-		if len(resultArray) == 0 {
+		if resultArray == nil || len(resultArray) == 0 {
 			fmt.Printf("暂时没有结果需要获取, 请稍后重试!")
 		} else {
 			for _, result := range resultArray {
@@ -89,7 +89,7 @@ func main() {
 					asrStatus, _ := resultMap["asrStatus"].(json.Number).Int64()
 					if asrStatus == 4 {
 						asrResult, _ := resultMap["asrResult"].(json.Number).Int64()
-						fmt.Printf("检测失败: taskId=%s, asrResult=%s", taskId, asrResult)
+						fmt.Printf("检测失败: taskId=%s, asrResult=%d", taskId, asrResult)
 					} else {
 						action, _ := resultMap["action"].(json.Number).Int64()
 						labelArray := resultMap["labels"].([]interface{})
@@ -100,8 +100,9 @@ func main() {
 								if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
 									_, _ = labelItemMap["label"].(json.Number).Int64()
 									_, _ = labelItemMap["level"].(json.Number).Int64()
-									_ = labelItemMap["details"].(map[string]interface{})
-									_ = labelItemMap["hint"].([]interface{})
+									details := labelItemMap["details"].(map[string]interface{})
+									_ = details["hint"].([]interface{})
+									_ = labelItemMap["subLabels"].([]interface{})
 									var printString string
 									if action == 1 {
 										printString = "不确定"

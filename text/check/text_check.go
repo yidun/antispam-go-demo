@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	apiUrl     = "https://as.dun.163yun.com/v3/text/query"
+	apiUrl     = "http://as.dun.163yun.com/v3/text/query"
 	version    = "v3.1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -99,7 +99,8 @@ func main() {
 		//		label, _ := labelItemMap["label"].(json.Number).Int64()
 		//		level, _ := labelItemMap["level"].(json.Number).Int64()
 		//		details := labelItemMap["details"].(map[string]interface{})
-		//		hintArray := labelItemMap["hint"].([]interface{})
+		//		hintArray := details["hint"].([]interface{})
+		//		subLabels := labelItemMap["subLabels"].([]interface{})
 		//	}
 		//}
 		if action == 0 {

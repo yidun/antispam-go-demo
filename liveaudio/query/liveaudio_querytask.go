@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl     = "https://as-liveaudio.dun.163yun.com/v1/liveaudio/submit/task"
+	apiUrl     = "http://as-liveaudio.dun.163yun.com/v1/liveaudio/submit/task"
 	version    = "v1.0"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露

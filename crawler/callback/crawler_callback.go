@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
 @Date : 2020-01-20
-@File : videosolution_submit.go
+@File : crawler_callback.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -11,6 +11,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"io/ioutil"
@@ -24,14 +25,15 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163yun.com/v1/videosolution/submit"
-	version   = "v1"
+	apiUrl    = "http://as.dun.163yun.com/v1/crawler/callback/results"
+	version   = "v1.0"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
 
 //请求易盾接口
-func check(params url.Values) *simplejson.Json {
+func check() *simplejson.Json {
+	params := url.Values{}
 	params["secretId"] = []string{secretId}
 	params["version"] = []string{version}
 	params["timestamp"] = []string{strconv.FormatInt(time.Now().UnixNano()/1000000, 10)}
@@ -70,34 +72,31 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	//var images []map[string]string
-	//image1 := map[string]string {
-	//	"name": "http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg",
-	//	"data": "http://p1.music.126.net/lEQvXzoC17AFKa6yrf-ldA==/1412872446212751.jpg",
-	//	"type": "1",
-	//}
-	//image2 := map[string]string {
-	//	"name": "{\"imageId\": 33451123, \"contentId\": 78978}",
-	//	"data": "xxx",
-	//	"type": "2",
-	//}
-	//images = append(images, image1, image2)
-	//jsonString, _ := json.Marshal(images)
-	params := url.Values{
-		"dataId": []string{"fbfcad1c-dba1-490c-b4de-e784c2691765"},
-		"url":    []string{"http://xxx.xx"},
-		//"images": []string{string(jsonString)},
-	}
-
-	ret := check(params)
+	ret := check()
 
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result, _ := ret.Get("result").Map()
-		taskId := result["taskId"].(string)
-		dataId := result["dataId"].(string)
-		fmt.Printf("SUBMIT SUCCESS: taskId=%s, dataId=%s", taskId, dataId)
+		resultArray, _ := ret.Get("result").Array()
+		if resultArray == nil || len(resultArray) == 0 {
+			fmt.Printf("Can't find Callback Data")
+		} else {
+			for _, result := range resultArray {
+				if resultMap, ok := result.(map[string]interface{}); ok {
+					taskId := resultMap["taskId"].(string)
+					result, _ := resultMap["result"].(json.Number).Int64()
+					dataId, _ := resultMap["dataId"].(string)
+					var callback string
+					if resultMap["callback"] == nil {
+						callback = ""
+					} else {
+						callback = resultMap["callback"].(string)
+					}
+					evidences := resultMap["evidences"].(map[string]interface{})
+					fmt.Printf("SUCCESS: dataId=%s, taskId=%s, result=%d, callback=%s, evidences=%s", dataId, taskId, result, callback, evidences)
+				}
+			}
+		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

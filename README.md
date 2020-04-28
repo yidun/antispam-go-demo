@@ -36,6 +36,7 @@ http://dun.163.com
 │   ├── livevideo_callback.go 直播流检测结果获取接口演示
 │   ├── livevideo_query.go 直播视频结果查询接口演示
 │   ├── livevideo_submit.go 直播流信息提交接口演示
+│   ├── livedata_query.go 直播视频截图结果查询接口演示
 │   ├── livewall_callback.go 直播电视墙检测结果获取接口演示
 │   ├── livewall_submit.go 直播电视墙信息提交接口演示
 │   ├── video_callback.go 视频点播检测结果获取接口演示

@@ -74,7 +74,8 @@ func genSignature(params url.Values) string {
 
 func main() {
 	taskIds := []string{"093238e25fa54a3993849e72eb6040af", "8d26fded48d74263a9ad30e8199fdac7"}
-	params := url.Values{"taskIds": taskIds}
+	jsonString, _ := json.Marshal(taskIds)
+	params := url.Values{"taskIds": []string{string(jsonString)}}
 
 	ret := check(params)
 

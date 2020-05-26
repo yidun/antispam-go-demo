@@ -24,17 +24,15 @@ import (
 )
 
 const (
-	apiUrl     = "http://as-file.dun.163yun.com/v1/file/submit"
-	version    = "v1.1"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	apiUrl    = "http://as-file.dun.163yun.com/v1/file/submit"
+	version   = "v1.1"
+	secretId  = "your_secret_id"  //产品密钥ID，产品标识
+	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
 
 //请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
-	params["businessId"] = []string{businessId}
 	params["version"] = []string{version}
 	params["timestamp"] = []string{strconv.FormatInt(time.Now().UnixNano()/1000000, 10)}
 	params["nonce"] = []string{strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63n(10000000000), 10)}

@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
 @Date : 2020-01-20
-@File : keyword_submit.go
+@File : keyword_delete.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163yun.com/v1/keyword/submit"
+	apiUrl     = "http://as.dun.163yun.com/v1/keyword/delete"
 	version    = "v1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -73,11 +73,10 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	keywords := []string{"色情敏感词1", "色情敏感词2"}
-	jsonString, _ := json.Marshal(keywords)
+	ids := []string{"163", "126"}
+	jsonString, _ := json.Marshal(ids)
 	params := url.Values{
-		"category": []string{"100"},
-		"keywords": []string{string(jsonString)},
+		"ids": []string{string(jsonString)},
 	}
 
 	ret := check(params)
@@ -85,8 +84,8 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		ids, _ := ret.Get("result").Array()
-		fmt.Printf("敏感词提交结果: %t", ids)
+		result, _ := ret.Get("result").Bool()
+		fmt.Printf("敏感词删除结果: %t", result)
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

@@ -85,8 +85,14 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		ids, _ := ret.Get("result").Array()
-		fmt.Printf("敏感词提交结果: %t", ids)
+		resultArray, _ := ret.Get("result").Array()
+		for _, result := range resultArray {
+			if resultMap, ok := result.(map[string]interface{}); ok {
+				keyword := resultMap["keyword"].(string)
+				id, _ := resultMap["id"].(json.Number).Int64()
+				fmt.Printf("敏感词提交成功，keyword: %s，id: %d", keyword, id)
+			}
+		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

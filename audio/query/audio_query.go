@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163yun.com/v1/audio/submit/task"
+	apiUrl     = "http://as.dun.163.com/v1/audio/submit/task"
 	version    = "v1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露

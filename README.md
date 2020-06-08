@@ -46,7 +46,9 @@ http://dun.163.com
 │   │── videosolution_callback.go 点播音视频解决方案检测结果获取接口演示
 │   └── videosolution_submit.go 点播音视频解决方案在线检测提交接口演示
 ├── keyword 敏感词接口演示
-│   └── keyword_submit.go 敏感词提交接口演示
+│   │── keyword_submit.go 敏感词提交接口演示
+│   │── keyword_delete.go 敏感词删除接口演示
+│   └── keyword_query.go 敏感词查询接口演示
 ├── list 名单接口演示
 │   └── list_submit.go 名单提交接口演示
 └── README.md

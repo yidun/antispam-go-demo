@@ -32,15 +32,17 @@ http://dun.163.com
 │   │── text_check.go 文本在线检测接口演示
 │   │── text_query.go 文本检测结果查询接口演示
 │   └── text_submit.go 文本批量提交接口演示
-├── video 视频接口演示
+├── livevideo 直播视频接口演示
 │   ├── livevideo_callback.go 直播流检测结果获取接口演示
 │   ├── livevideo_query.go 直播视频结果查询接口演示
 │   ├── livevideo_submit.go 直播流信息提交接口演示
-│   ├── livedata_query.go 直播视频截图结果查询接口演示
+│   ├── liveimage_query.go 直播视频截图结果查询接口演示
 │   ├── livewall_callback.go 直播电视墙检测结果获取接口演示
-│   ├── livewall_submit.go 直播电视墙信息提交接口演示
+│   └── livewall_submit.go 直播电视墙信息提交接口演示
+├── video 点播视频接口演示
 │   ├── video_callback.go 视频点播检测结果获取接口演示
 │   ├── video_query.go 视频点播结果查询接口演示
+│   ├── videoimage_query.go 视频点播截图结果查询接口演示
 │   └── video_submit.go 视频点播信息提交接口演示
 ├── videosolution 点播音视频解决方案接口演示
 │   │── videosolution_callback.go 点播音视频解决方案检测结果获取接口演示

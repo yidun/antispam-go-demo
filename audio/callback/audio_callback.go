@@ -113,6 +113,20 @@ func main() {
 								}
 							}
 						}
+						segments := resultMap["segment"].([]interface{})
+						if segments != nil && len(segments) > 0 {
+							for _, segment := range segments {
+								if segmentMap, ok := segment.(map[string]interface{}); ok {
+									startTime, _ := segmentMap["startTime"].(json.Number).Int64()
+									endTime, _ := segmentMap["endTime"].(json.Number).Int64()
+									content, _ := segmentMap["content"].(string)
+									label, _ := segmentMap["label"].(json.Number).Int64()
+									level, _ := segmentMap["level"].(json.Number).Int64()
+									fmt.Printf("taskId=%s，开始时间：%d秒，结束时间：%d秒，内容：%s， label:%d, level:%d",
+										taskId, startTime, endTime, content, label, level)
+								}
+							}
+						}
 					}
 				}
 			}

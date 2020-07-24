@@ -154,7 +154,8 @@ func main() {
 					taskId := resultMap["taskId"].(string)
 					callback := resultMap["callback"].(string)
 					dataId := resultMap["dataId"].(string)
-					fmt.Printf("taskId:%s, callback:%s, dataId:%s", taskId, callback, dataId)
+					content := resultMap["content"].(string)
+					fmt.Printf("taskId:%s, callback:%s, dataId:%s, content:%s", taskId, callback, dataId, content)
 
 					evidences, _ := resultMap["evidences"].(map[string]interface{})
 					reviewEvidences, _ := resultMap["reviewEvidences"].(map[string]interface{})

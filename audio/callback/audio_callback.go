@@ -26,7 +26,7 @@ import (
 
 const (
 	apiUrl     = "http://as.dun.163.com/v3/audio/callback/results"
-	version    = "v3.1"
+	version    = "v3.2"             //点播语音版本v3.2及以上二级细分类结构进行调整
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -100,18 +100,26 @@ func main() {
 								if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
 									_, _ = labelItemMap["label"].(json.Number).Int64()
 									_, _ = labelItemMap["level"].(json.Number).Int64()
-									details := labelItemMap["details"].(map[string]interface{})
-									_ = details["hint"].([]interface{})
-									_ = labelItemMap["subLabels"].([]interface{})
-									var printString string
-									if action == 1 {
-										printString = "不确定"
-									} else {
-										printString = "不通过"
+									// 注意二级细分类结构
+									subLabels := labelItemMap["subLabels"].([]interface{})
+									if subLabels != nil && len(subLabels) > 0 {
+										for _, subLabelItem := range subLabels {
+											if subLabelMap, ok := subLabelItem.(map[string]interface{}); ok {
+												_, _ = subLabelMap["subLabel"].(string)
+												details := subLabelMap["details"].(map[string]interface{})
+												_, _ = details["hint"].([]interface{})
+											}
+										}
 									}
-									fmt.Printf("taskId=%s, 结果: %s，证据信息如下: %s", taskId, printString, labelArray)
 								}
 							}
+							var printString string
+							if action == 1 {
+								printString = "不确定"
+							} else {
+								printString = "不通过"
+							}
+							fmt.Printf("taskId=%s, 结果: %s，证据信息如下: %s", taskId, printString, labelArray)
 						}
 						segments := resultMap["segment"].([]interface{})
 						if segments != nil && len(segments) > 0 {

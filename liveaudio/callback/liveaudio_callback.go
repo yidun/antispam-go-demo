@@ -26,7 +26,7 @@ import (
 
 const (
 	apiUrl     = "http://as-liveaudio.dun.163.com/v2/liveaudio/callback/results"
-	version    = "v2"
+	version    = "v2.1"             //直播语音版本v2.1及以上二级细分类结构进行调整
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -92,7 +92,7 @@ func parseMachine(evidences map[string]interface{}, taskId string) {
 				if segmentMap, ok := segment.(map[string]interface{}); ok {
 					_, _ = segmentMap["label"].(json.Number).Int64()
 					_, _ = segmentMap["level"].(json.Number).Int64()
-					_, _ = segmentMap["evidence"].(string)
+					_, _ = segmentMap["subLabels"].([]interface{})
 					var printString string
 					if action == 1 {
 						printString = "不确定"

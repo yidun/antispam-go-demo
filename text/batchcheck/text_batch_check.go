@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
 @Date : 2020-01-20
-@File : text_check.go
+@File : text_batch_check.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -11,6 +11,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"io/ioutil"
@@ -24,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v3/text/check"
+	apiUrl     = "http://as.dun.163.com/v3/text/batch-check"
 	version    = "v3.1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -72,9 +73,12 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	params := url.Values{
-		"dataId":  []string{"ebfcad1c-dba1-490c-b4de-e784c2691768"},
-		"content": []string{"易盾测试内容！"},
+	params := make(url.Values)
+	var texts []map[string]string
+
+	text1 := map[string]string{
+		"dataId":  "ebfcad1c-dba1-490c-b4de-e784c2691768",
+		"content": "易盾批量检测接口！v3接口!",
 		//"dataType": []string{"1"},
 		//"ip": []string{"123.115.77.137"},
 		//"account": []string{"golang@163.com"},
@@ -84,31 +88,50 @@ func main() {
 		//"publishTime": []string{"1479677336255"},
 		//"callbackUrl": []string{"http://***"},	//主动回调地址url,如果设置了则走主动回调逻辑
 	}
+	text2 := map[string]string{
+		"dataId":  "ebfcad1c-dba1-490c-b4de-e784c2691767",
+		"content": "易盾批量检测接口！v3接口!",
+	}
+	texts = append(texts, text1, text2)
+	jsonString, _ := json.Marshal(texts)
+	params["texts"] = []string{string(jsonString)}
+	params["checkLabels"] = []string{"200, 500"} // 指定过检分类
 
 	ret := check(params)
 
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result := ret.Get("result")
-		action, _ := result.Get("action").Int()
-		taskId, _ := result.Get("taskId").String()
-		labelArray, _ := result.Get("labels").Array()
-		//for _, labelItem := range labelArray {
-		//	if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-		//		label, _ := labelItemMap["label"].(json.Number).Int64()
-		//		level, _ := labelItemMap["level"].(json.Number).Int64()
-		//		details := labelItemMap["details"].(map[string]interface{})
-		//		hintArray := details["hint"].([]interface{})
-		//		subLabels := labelItemMap["subLabels"].([]interface{})
-		//	}
-		//}
-		if action == 0 {
-			fmt.Printf("taskId: %s, 文本机器检测结果: 通过", taskId)
-		} else if action == 1 {
-			fmt.Printf("taskId: %s, 文本机器检测结果: 嫌疑, 需人工复审, 分类信息如下: %s", taskId, labelArray)
-		} else if action == 2 {
-			fmt.Printf("taskId=%s, 文本机器检测结果: 不通过, 分类信息如下: %s", taskId, labelArray)
+		resultArray, _ := ret.Get("result").Array()
+		for _, result := range resultArray {
+			if resultMap, ok := result.(map[string]interface{}); ok {
+				dataId := resultMap["dataId"].(string)
+				taskId := resultMap["taskId"].(string)
+				action, _ := resultMap["action"].(json.Number).Int64()
+				status, _ := resultMap["status"].(json.Number).Int64()
+				fmt.Printf("dataId: %s, 批量文本提交返回taskId: %s\n", dataId, taskId)
+				if status == 0 {
+					labelArray, _ := resultMap["labels"].([]interface{})
+					for _, labelItem := range labelArray {
+						if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
+							_, _ = labelItemMap["label"].(json.Number).Int64()
+							_, _ = labelItemMap["level"].(json.Number).Int64()
+							details := labelItemMap["details"].(map[string]interface{})
+							_, _ = details["hint"].([]interface{})
+							_, _ = labelItemMap["subLabels"].([]interface{})
+						}
+					}
+					if action == 0 {
+						fmt.Printf("taskId: %s, 文本机器检测结果: 通过", taskId)
+					} else if action == 1 {
+						fmt.Printf("taskId: %s, 文本机器检测结果: 嫌疑, 需人工复审, 分类信息如下: %s", taskId, labelArray)
+					} else if action == 2 {
+						fmt.Printf("taskId=%s, 文本机器检测结果: 不通过, 分类信息如下: %s", taskId, labelArray)
+					}
+				} else {
+					fmt.Printf("提交失败")
+				}
+			}
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

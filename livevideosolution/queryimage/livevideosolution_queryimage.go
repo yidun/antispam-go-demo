@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-07-15
-@File : videoimage_query.go
+@Date : 2020-10-29
+@File : livevideosolution_queryimage.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,17 +26,15 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/livevideo/query/image"
-	version    = "v1"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	apiUrl    = "http://as.dun.163yun.com/v1/livewallsolution/query/image"
+	version   = "v1.0"
+	secretId  = "your_secret_id"  //产品密钥ID，产品标识
+	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
 
 //请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
-	params["businessId"] = []string{businessId}
 	params["version"] = []string{version}
 	params["timestamp"] = []string{strconv.FormatInt(time.Now().UnixNano()/1000000, 10)}
 	params["nonce"] = []string{strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63n(10000000000), 10)}
@@ -82,12 +80,11 @@ func genSignature(params url.Values) string {
 
 func main() {
 	params := url.Values{
-		"taskId":         []string{"87aa24884d614ae8b8cc4d472b37be51"},
-		"levels":         []string{"[0,1,2]"},
+		"taskId":         []string{"c633a8cb6d45497c9f4e7bd6d8218443"},
+		"levels":         []string{"[1,2]"},
+		"callbackStatus": []string{"1"},
 		"pageNum":        []string{"1"},
-		"pageSize":       []string{"20"},
-		"callbackStatus": []string{"1"}, // 详情查看官网CallbackStatus
-		"orderType":      []string{"3"}, // 详情查看官网LiveVideoDataOderType
+		"pageSize":       []string{"10"},
 	}
 
 	ret := check(params)
@@ -97,26 +94,24 @@ func main() {
 	if code == 200 {
 		result := ret.Get("result")
 		status, _ := result.Get("status").Int()
+		images := result.Get("images")
+		_, _ = images.Get("count").Int()
+		rows, _ := images.Get("rows").Array()
 		if status == 0 {
-			images := result.Get("images")
-			count, _ := images.Get("count").Int()
-			rows, _ := images.Get("rows").Array()
 			for _, row := range rows {
 				if rowMap, ok := row.(map[string]interface{}); ok {
-					picUrl, _ := rowMap["url"].(string)
-					label, _ := rowMap["label"].(json.Number).Int64()
-					labelLevel, _ := rowMap["labelLevel"].(json.Number).Int64()
-					callbackStatus, _ := rowMap["callbackStatus"].(json.Number).Int64()
-					beginTime, _ := rowMap["beginTime"].(json.Number).Int64()
-					endTime, _ := rowMap["endTime"].(json.Number).Int64()
-					fmt.Printf("成功, count: %d, url: %s, label: %d, labelLevel: %d, callbackStatus: %d, 开始时间: %d, 结束时间: %d",
-						count, picUrl, label, labelLevel, callbackStatus, beginTime, endTime)
+					_, _ = rowMap["url"].(string)
+					_, _ = rowMap["label"].(json.Number).Int64()
+					_, _ = rowMap["labelLevel"].(json.Number).Int64()
+					_, _ = rowMap["beginTime"].(json.Number).Int64()
+					_, _ = rowMap["endTime"].(json.Number).Int64()
 				}
 			}
+			fmt.Printf("live data query success, images: %s", rows)
 		} else if status == 20 {
-			fmt.Printf("taskId不是7天内数据")
+			fmt.Printf("taskId is expired")
 		} else if status == 30 {
-			fmt.Printf("taskId不存在")
+			fmt.Printf("taskId is not exist")
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

@@ -11,6 +11,9 @@ http://dun.163.com
 │   │── audio_query.go 点播语音结果查询接口演示
 │   │── audio_submit.go 点播语音在线检测提交接口演示
 │   │── liveaudio_callback.go 直播语音检测结果获取接口演示
+│   │── liveaudio_querytask.go 直播语音结果获取接口演示
+│   │── liveaudio_querymonitor.go 直播语音人审操作记录获取接口演示
+│   │── liveaudio_feedback.go 直播语音信息更新接口演示
 │   └── liveaudio_check.go 直播语音在线检测提交接口演示
 ├── crawler 网站解决方案接口演示
 │   │── crawler_callback.go 网站解决方案检测结果获取接口演示
@@ -22,10 +25,20 @@ http://dun.163.com
 ├── image 图片接口演示
 │   ├── image_callback.go 图片离线结果获取接口演示
 │   ├── image_check.go 图片在线检测接口演示
+│   ├── image_asynccheck.go 图片离线检测接口演示
+│   ├── image_asyncresult.go 图片离线检测结果查询接口演示
 │   ├── image_query.go 图片检测结果查询接口演示
+│   ├── imagelist_delete.go 图片名单删除接口演示
+│   ├── imagelist_query.go 图片名单查询接口演示
+│   ├── imagelist_submit.go 图片名单添加接口演示
+│   ├── imagelist_update.go 图片名单更新接口演示
 │   └── image_submit.go 图片批量提交接口演示
 ├── livevideosolution 直播音视频解决方案接口演示
 │   │── livevideosolution_callback.go 直播音视频解决方案离线结果获取接口演示
+│   │── livevideosolution_querymonitor.go 直播音视频解决方案人审操作记录获取接口演示
+│   │── livevideosolution_feedback.go 直播音视频解决方案信息更新接口演示
+│   │── livevideosolution_queryaudio.go 直播音视频解决方案查询音频断句信息接口演示
+│   │── livevideosolution_queryimage.go 直播音视频解决方案查询视频截图信息接口演示
 │   └── livevideosolution_submit.go 直播音视频解决方案在线检测提交接口演示
 ├── text 文本接口演示
 │   │── text_callback.go 文本离线结果获取接口演示
@@ -36,9 +49,11 @@ http://dun.163.com
 ├── livevideo 直播视频接口演示
 │   ├── livevideo_callback.go 直播流检测结果获取接口演示
 │   ├── livevideo_query.go 直播视频结果查询接口演示
-│   ├── livevideo_submit.go 直播流信息提交接口演示
+│   ├── livevideo_submit.go 直播视频信息提交接口演示
+│   ├── livevideo_feedback.go 直播视频信息更新接口演示
 │   ├── liveimage_query.go 直播视频截图结果查询接口演示
 │   ├── livewall_callback.go 直播电视墙检测结果获取接口演示
+│   ├── livewall_querymonitor.go 直播电视墙人审操作记录获取接口演示
 │   └── livewall_submit.go 直播电视墙信息提交接口演示
 ├── video 点播视频接口演示
 │   ├── video_callback.go 视频点播检测结果获取接口演示

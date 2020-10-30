@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-07-15
-@File : videoimage_query.go
+@Date : 2020-10-15
+@File : livewall_querymonitor.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/livevideo/query/image"
-	version    = "v1"
+	apiUrl     = "http://as.dun.163.com/v1/livewall/query/monitor"
+	version    = "v1.0"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -82,12 +82,7 @@ func genSignature(params url.Values) string {
 
 func main() {
 	params := url.Values{
-		"taskId":         []string{"87aa24884d614ae8b8cc4d472b37be51"},
-		"levels":         []string{"[0,1,2]"},
-		"pageNum":        []string{"1"},
-		"pageSize":       []string{"20"},
-		"callbackStatus": []string{"1"}, // 详情查看官网CallbackStatus
-		"orderType":      []string{"3"}, // 详情查看官网LiveVideoDataOderType
+		"taskId": []string{"26b3f1b1e1a4460c9012ee45857d8349"},
 	}
 
 	ret := check(params)
@@ -95,28 +90,23 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result := ret.Get("result")
-		status, _ := result.Get("status").Int()
+		result, _ := ret.Get("result").Map()
+		status, _ := result["status"].(json.Number).Int64()
 		if status == 0 {
-			images := result.Get("images")
-			count, _ := images.Get("count").Int()
-			rows, _ := images.Get("rows").Array()
-			for _, row := range rows {
-				if rowMap, ok := row.(map[string]interface{}); ok {
-					picUrl, _ := rowMap["url"].(string)
-					label, _ := rowMap["label"].(json.Number).Int64()
-					labelLevel, _ := rowMap["labelLevel"].(json.Number).Int64()
-					callbackStatus, _ := rowMap["callbackStatus"].(json.Number).Int64()
-					beginTime, _ := rowMap["beginTime"].(json.Number).Int64()
-					endTime, _ := rowMap["endTime"].(json.Number).Int64()
-					fmt.Printf("成功, count: %d, url: %s, label: %d, labelLevel: %d, callbackStatus: %d, 开始时间: %d, 结束时间: %d",
-						count, picUrl, label, labelLevel, callbackStatus, beginTime, endTime)
+			records, _ := result["records"].([]interface{})
+			for _, record := range records {
+				if recordMap, ok := record.(map[string]interface{}); ok {
+					_, _ = recordMap["action"].(json.Number).Int64()
+					_, _ = recordMap["actionTime"].(json.Number).Int64()
+					_, _ = recordMap["label"].(json.Number).Int64()
+					_, _ = recordMap["detail"].(string)
 				}
 			}
+			fmt.Printf("直播人审结果：%s", records)
 		} else if status == 20 {
-			fmt.Printf("taskId不是7天内数据")
+			fmt.Printf("数据过期")
 		} else if status == 30 {
-			fmt.Printf("taskId不存在")
+			fmt.Printf("数据不存在")
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

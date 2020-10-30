@@ -111,6 +111,10 @@ func main() {
 						count, picUrl, label, labelLevel, beginTime, endTime)
 				}
 			}
+		} else if status == 20 {
+			fmt.Printf("taskId不是7天内数据")
+		} else if status == 30 {
+			fmt.Printf("taskId不存在")
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

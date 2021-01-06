@@ -9,11 +9,13 @@ http://dun.163.com
 ├── audio 语音接口演示
 │   │── audio_callback.go 点播语音检测结果获取接口演示
 │   │── audio_query.go 点播语音结果查询接口演示
-│   │── audio_submit.go 点播语音在线检测提交接口演示
+│   │── audio_submit.go 点播语音检测提交接口演示
+│   │── audio_check.go 点播语音在线检测接口演示
 │   │── liveaudio_callback.go 直播语音检测结果获取接口演示
 │   │── liveaudio_querytask.go 直播语音结果获取接口演示
 │   │── liveaudio_querymonitor.go 直播语音人审操作记录获取接口演示
 │   │── liveaudio_feedback.go 直播语音信息更新接口演示
+│   │── liveaudio_queryextra.go 直播语音增值检测结果获取接口演示
 │   └── liveaudio_check.go 直播语音在线检测提交接口演示
 ├── crawler 网站解决方案接口演示
 │   │── crawler_callback.go 网站解决方案检测结果获取接口演示

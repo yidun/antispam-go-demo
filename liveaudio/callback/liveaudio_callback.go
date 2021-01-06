@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as-liveaudio.dun.163.com/v2/liveaudio/callback/results"
-	version    = "v2.1"             //直播语音版本v2.1及以上二级细分类结构进行调整
+	apiUrl     = "http://as.dun.163.com/v3/liveaudio/callback/results"
+	version    = "v3"               //直播语音版本v2.1及以上二级细分类结构进行调整
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -153,11 +153,12 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		resultArray, _ := ret.Get("result").Array()
-		if resultArray == nil || len(resultArray) == 0 {
+		result, _ := ret.Get("result").Map()
+		antispamArray, _ := result["antispam"].([]interface{})
+		if antispamArray == nil || len(antispamArray) == 0 {
 			fmt.Printf("暂时没有结果需要获取, 请稍后重试!")
 		} else {
-			for _, result := range resultArray {
+			for _, result := range antispamArray {
 				if resultMap, ok := result.(map[string]interface{}); ok {
 					taskId := resultMap["taskId"].(string)
 					callback := resultMap["callback"].(string)
@@ -170,7 +171,23 @@ func main() {
 						parseMachine(evidences, taskId)
 					} else if reviewEvidences != nil {
 						parseHuman(reviewEvidences, taskId)
+					} else {
+						fmt.Printf("Invalid result: %s", result)
 					}
+				}
+			}
+		}
+		asrArray, _ := result["asr"].([]interface{})
+		if asrArray == nil || len(asrArray) == 0 {
+			fmt.Printf("暂时没有结果需要获取, 请稍后重试!")
+		} else {
+			for _, result := range asrArray {
+				if resultMap, ok := result.(map[string]interface{}); ok {
+					taskId := resultMap["taskId"].(string)
+					startTime, _ := resultMap["startTime"].(json.Number).Int64()
+					endTime, _ := resultMap["endTime"].(json.Number).Int64()
+					content, _ := resultMap["content"].(string)
+					fmt.Printf("taskId=%s，content=%s，startTime=%d秒，endTime=%d秒", taskId, content, startTime, endTime)
 				}
 			}
 		}

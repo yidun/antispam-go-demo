@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-10-29
-@File : liveaudio_feedback.go
+@Date : 2021-01-06
+@File : liveaudio_queryextra.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/liveaudio/feedback"
-	version    = "v1.0"
+	apiUrl     = "http://as.dun.163.com/v1/liveaudio/query/extra"
+	version    = "v1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -81,15 +81,8 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	var feedbacks []map[string]string
-	feedback := map[string]string{
-		"taskId": "26b3f1b1e1a4460c9012ee45857d8349",
-		"status": "100",
-	}
-	feedbacks = append(feedbacks, feedback)
-	jsonString, _ := json.Marshal(feedbacks)
 	params := url.Values{
-		"feedbacks": []string{string(jsonString)},
+		"taskId": []string{"xxx"},
 	}
 
 	ret := check(params)
@@ -97,17 +90,18 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		resultArray, _ := ret.Get("result").Array()
-		for _, result := range resultArray {
-			if resultMap, ok := result.(map[string]interface{}); ok {
-				taskId, _ := resultMap["taskId"].(string)
-				status, _ := resultMap["result"].(json.Number).Int64()
-				if status == 0 {
-					fmt.Printf("SUCCESS, taskId=%s", taskId)
-				} else if status == 2 {
-					fmt.Printf("NOT EXISTS, taskId=%s", taskId)
-				} else if status == 1 {
-					fmt.Printf("SERVER ERROR, taskId=%s", taskId)
+		result, _ := ret.Get("result").Map()
+		asrArray, _ := result["asr"].([]interface{})
+		if asrArray != nil && len(asrArray) > 0 {
+			for _, result := range asrArray {
+				if resultMap, ok := result.(map[string]interface{}); ok {
+					_, _ = resultMap["asr"].(map[string]interface{})
+					taskId := resultMap["taskId"].(string)
+					content := resultMap["content"].(string)
+					startTime, _ := resultMap["startTime"].(json.Number).Int64()
+					endTime, _ := resultMap["endTime"].(json.Number).Int64()
+					fmt.Printf("语音识别检测结果：taskId=%s, content=%s, startTime=%d, endTime=%d",
+						taskId, content, startTime, endTime)
 				}
 			}
 		}

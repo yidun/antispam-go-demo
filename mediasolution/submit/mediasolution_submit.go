@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v1/mediasolution/submit"
-	version   = "v1.0"
+	apiUrl    = "http://as.dun.163.com/v2/mediasolution/submit"
+	version   = "v2.0"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -113,14 +113,16 @@ func main() {
 	}
 
 	ret := check(params)
-
+	// 展示了异步结果返回示例，同步结果返回示例请参考官网开发文档
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		result, _ := ret.Get("result").Map()
-		taskId := result["taskId"].(string)
-		dataId := result["dataId"].(string)
-		fmt.Printf("SUBMIT SUCCESS: taskId=%s, dataId=%s", taskId, dataId)
+		if antispam, ok := result["antispam"].(map[string]interface{}); ok {
+			taskId := antispam["taskId"].(string)
+			dataId := antispam["dataId"].(string)
+			fmt.Printf("SUBMIT SUCCESS: taskId=%s, dataId=%s", taskId, dataId)
+		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

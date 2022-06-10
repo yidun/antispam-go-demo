@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v1/mediasolution/callback/results"
-	version   = "v1"
+	apiUrl    = "http://as.dun.163.com/v2/mediasolution/callback/results"
+	version   = "v2"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -91,72 +91,65 @@ func main() {
 		} else {
 			for _, resultItem := range resultArray {
 				if resultMap, ok := resultItem.(map[string]interface{}); ok {
-					_ = resultMap["taskId"].(string)
-					_ = resultMap["dataId"].(string)
-					_ = resultMap["callback"].(string)
-					_, _ = resultMap["checkStatus"].(json.Number).Int64()
-					_, _ = resultMap["result"].(json.Number).Int64()
-					if resultMap["evidences"] != nil {
-						evidences, _ := resultMap["evidences"].(map[string]interface{})
-						if evidences["texts"] != nil {
-							texts := evidences["texts"].([]interface{})
-							for _, textItem := range texts {
-								if textMap, ok := textItem.(map[string]interface{}); ok {
-									dataId, _ := textMap["dataId"].(string)
-									action, _ := textMap["action"].(json.Number).Int64()
-									fmt.Printf("文本信息, dataId:%s, 检测结果:%d", dataId, action)
+					if antispam, ok := resultMap["antispam"].(map[string]interface{}); ok {
+						_ = antispam["taskId"].(string)
+						_ = antispam["dataId"].(string)
+						_ = antispam["callback"].(string)
+						_, _ = antispam["checkStatus"].(json.Number).Int64()
+						_, _ = antispam["result"].(json.Number).Int64()
+						if resultMap["evidences"] != nil {
+							evidences, _ := antispam["evidences"].(map[string]interface{})
+							if evidences["texts"] != nil {
+								texts := evidences["texts"].([]interface{})
+								for _, textItem := range texts {
+									if textMap, ok := textItem.(map[string]interface{}); ok {
+										dataId, _ := textMap["dataId"].(string)
+										suggestion, _ := textMap["suggestion"].(json.Number).Int64()
+										fmt.Printf("文本信息, dataId:%s, 建议动作:%d", dataId, suggestion)
+									}
 								}
-							}
-						} else if evidences["images"] != nil {
-							images := evidences["images"].([]interface{})
-							for _, imageItem := range images {
-								if imageMap, ok := imageItem.(map[string]interface{}); ok {
-									dataId, _ := imageMap["dataId"].(string)
-									status, _ := imageMap["status"].(json.Number).Int64()
-									action, _ := imageMap["action"].(json.Number).Int64()
-									fmt.Printf("图片信息, dataId:%s, 检测状态:%d, 检测结果:%d", dataId, status, action)
+							} else if evidences["images"] != nil {
+								images := evidences["images"].([]interface{})
+								for _, imageItem := range images {
+									if imageMap, ok := imageItem.(map[string]interface{}); ok {
+										dataId, _ := imageMap["dataId"].(string)
+										status, _ := imageMap["status"].(json.Number).Int64()
+										suggestion, _ := imageMap["suggestion"].(json.Number).Int64()
+										fmt.Printf("图片信息, dataId:%s, 检测状态:%d, 建议动作:%d", dataId, status, suggestion)
+									}
 								}
-							}
-						} else if evidences["audios"] != nil {
-							audios := evidences["audios"].([]interface{})
-							for _, audioItem := range audios {
-								if audioMap, ok := audioItem.(map[string]interface{}); ok {
-									dataId, _ := audioMap["dataId"].(string)
-									status, _ := audioMap["asrStatus"].(json.Number).Int64()
-									action, _ := audioMap["action"].(json.Number).Int64()
-									fmt.Printf("语音信息, dataId:%s, 检测状态:%d, 检测结果:%d", dataId, status, action)
+							} else if evidences["audios"] != nil {
+								audios := evidences["audios"].([]interface{})
+								for _, audioItem := range audios {
+									if audioMap, ok := audioItem.(map[string]interface{}); ok {
+										dataId, _ := audioMap["dataId"].(string)
+										status, _ := audioMap["asrStatus"].(json.Number).Int64()
+										suggestion, _ := audioMap["suggestion"].(json.Number).Int64()
+										fmt.Printf("语音信息, dataId:%s, 检测状态:%d, 建议动作:%d", dataId, status, suggestion)
+									}
 								}
-							}
-						} else if evidences["videos"] != nil {
-							videos := evidences["videos"].([]interface{})
-							for _, videoItem := range videos {
-								if videoMap, ok := videoItem.(map[string]interface{}); ok {
-									dataId, _ := videoMap["dataId"].(string)
-									status, _ := videoMap["status"].(json.Number).Int64()
-									level, _ := videoMap["level"].(json.Number).Int64()
-									fmt.Printf("视频信息, dataId:%s, 检测状态:%d, 检测结果:%d", dataId, status, level)
+							} else if evidences["audiovideos"] != nil {
+								audiovideos := evidences["audiovideos"].([]interface{})
+								for _, audiovideoItem := range audiovideos {
+									if audiovideoMap, ok := audiovideoItem.(map[string]interface{}); ok {
+										dataId, _ := audiovideoMap["dataId"].(string)
+										suggestion, _ := audiovideoMap["suggestion"].(json.Number).Int64()
+										fmt.Printf("音视频信息, dataId:%s, 建议动作:%d", dataId, suggestion)
+									}
 								}
-							}
-						} else if evidences["audiovideos"] != nil {
-							audiovideos := evidences["audiovideos"].([]interface{})
-							for _, audiovideoItem := range audiovideos {
-								if audiovideoMap, ok := audiovideoItem.(map[string]interface{}); ok {
-									dataId, _ := audiovideoMap["dataId"].(string)
-									result, _ := audiovideoMap["result"].(json.Number).Int64()
-									fmt.Printf("音视频信息, dataId:%s, 检测结果:%d", dataId, result)
-								}
-							}
-						} else if evidences["files"] != nil {
-							files := evidences["files"].([]interface{})
-							for _, fileItem := range files {
-								if fileMap, ok := fileItem.(map[string]interface{}); ok {
-									dataId, _ := fileMap["dataId"].(string)
-									result, _ := fileMap["result"].(json.Number).Int64()
-									fmt.Printf("文档信息, dataId:%s, 检测结果:%d", dataId, result)
+							} else if evidences["files"] != nil {
+								files := evidences["files"].([]interface{})
+								for _, fileItem := range files {
+									if fileMap, ok := fileItem.(map[string]interface{}); ok {
+										dataId, _ := fileMap["dataId"].(string)
+										suggestion, _ := fileMap["suggestion"].(json.Number).Int64()
+										fmt.Printf("文档信息, dataId:%s, 建议动作:%d", dataId, suggestion)
+									}
 								}
 							}
 						}
 					}
+
 				}
 			}
 		}

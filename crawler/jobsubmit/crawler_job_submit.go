@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : crawler_submit.go
+@Date : 2022-06-10
+@File : crawler_job_submit.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v3/crawler/submit"
-	version   = "v3.0"
+	apiUrl    = "http://as.dun.163.com/v1/crawler/job/submit"
+	version   = "v1.0"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -79,10 +79,12 @@ func genSignature(params url.Values) string {
 
 func main() {
 	params := url.Values{
-		"dataId": []string{"6a7c754f9de34eb8bfdf03f209fcfc02"},
-		"url":    []string{"http://xxx.com"},
-		// 多个检测项时用英文逗号分隔
-		"checkFlags": []string{"1,2"},
+		"type":              []string{"1"},
+		"frequency":         []string{"100"},
+		"siteUrl":           []string{"http://xxx.com"},
+		"level":             []string{"1"},
+		"maxResourceAmount": []string{"1"},
+		// 其他参数可查看官网开发文档
 	}
 
 	ret := check(params)
@@ -91,9 +93,9 @@ func main() {
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		result, _ := ret.Get("result").Map()
-		taskId := result["taskId"].(string)
+		jobId := result["jobId"].(int64)
 		dataId := result["dataId"].(string)
-		fmt.Printf("SUBMIT SUCCESS: taskId=%s, dataId=%s", taskId, dataId)
+		fmt.Printf("SUBMIT SUCCESS: jobId=%s, dataId=%s", jobId, dataId)
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

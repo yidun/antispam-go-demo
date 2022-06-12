@@ -11,7 +11,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/tjfoc/gmsm/sm3"
@@ -26,8 +25,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/audio/check"
-	version    = "v1"
+	apiUrl     = "http://as.dun.163.com/v2/audio/check"
+	version    = "v2.1"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -89,102 +88,45 @@ func main() {
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		result, _ := ret.Get("result").Map()
-		taskId := result["taskId"].(string)
-		status, _ := result["status"].(json.Number).Int64()
-		if status == 0 {
-			fmt.Printf("CHECK SUCCESS: taskId=%s", taskId)
-			antispamArray, _ := ret.Get("antispam").Array()
-			if antispamArray == nil || len(antispamArray) == 0 {
-				fmt.Printf("暂无反垃圾检测数据")
-			} else {
-				for _, result := range antispamArray {
-					if resultMap, ok := result.(map[string]interface{}); ok {
-						action, _ := resultMap["action"].(json.Number).Int64()
-						taskId := resultMap["taskId"].(string)
-						labelArray, _ := resultMap["labels"].([]interface{})
-						if action == 0 {
-							fmt.Printf("taskId=%s，结果：通过", taskId)
-						} else if action == 2 {
-							for _, labelItem := range labelArray {
-								if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-									_, _ = labelItemMap["label"].(json.Number).Int64()
-									_, _ = labelItemMap["level"].(json.Number).Int64()
-									details := labelItemMap["details"].(map[string]interface{})
-									_ = details["hint"].([]interface{})
-									_ = labelItemMap["subLabels"].([]interface{})
-									fmt.Printf("uuid=%s，结果：不通过，分类信息如下：%s", taskId, labelArray)
-								}
-							}
+		if result["antispam"] != nil {
+			/*antispam, _ := resultMap["antispam"].(map[string]interface{})
+			taskId := antispam["taskId"].(string)
+			status, _ := antispam["status"].(json.Number).Int64()
+			if status == 2 {
+				fmt.Printf("CHECK SUCCESS: taskId=%s", taskId)
+				suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+				resultType, _ := antispam["resultType"].(json.Number).Int64()
+				segmentArray := resultMap["segments"].([]interface{})
+				if segmentArray == nil && len(segmentArray) > 0 {
+					fmt.Printf("暂无反垃圾检测数据")
+				} else {
+					for _, segment := range segmentArray {
+						if segmentMap, ok := segment.(map[string]interface{}); ok {
+							startTime, _ := segmentMap["startTime"].(json.Number).Int64()
+							endTime, _ := segmentMap["endTime"].(json.Number).Int64()
+							content, _ := segmentMap["content"].(string)
 						}
 					}
 				}
-			}
-			languageArray, _ := ret.Get("language").Array()
-			if languageArray == nil || len(languageArray) == 0 {
-				fmt.Printf("暂无语种检测数据")
-			} else {
-				for _, result := range languageArray {
-					if resultMap, ok := result.(map[string]interface{}); ok {
-						taskId := resultMap["taskId"].(string)
-						detailsArray, _ := resultMap["details"].([]interface{})
-						if detailsArray != nil && len(detailsArray) > 0 {
-							for _, language := range detailsArray {
-								if languageMap, ok := language.(map[string]interface{}); ok {
-									typeLan, _ := languageMap["type"].(string)
-									segmentsArray, _ := languageMap["segments"].([]interface{})
-									if segmentsArray != nil && len(segmentsArray) > 0 {
-										for _, segment := range segmentsArray {
-											if segmentMap, ok := segment.(map[string]interface{}); ok {
-												startTime, _ := segmentMap["startTime"].(json.Number).Int64()
-												endTime, _ := segmentMap["endTime"].(json.Number).Int64()
-												fmt.Printf("taskId=%s，语种类型=%s，开始时间=%d秒，结束时间=%d秒", taskId, typeLan, startTime, endTime)
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			asrArray, _ := ret.Get("asr").Array()
-			if asrArray == nil || len(asrArray) == 0 {
-				fmt.Printf("暂无语音翻译数据")
-			} else {
-				for _, result := range asrArray {
-					if resultMap, ok := result.(map[string]interface{}); ok {
-						taskId := resultMap["taskId"].(string)
-						detailsArray, _ := resultMap["details"].([]interface{})
-						if detailsArray != nil && len(detailsArray) > 0 {
-							for _, asr := range detailsArray {
-								if asrMap, ok := asr.(map[string]interface{}); ok {
-									startTime, _ := asrMap["startTime"].(json.Number).Int64()
-									endTime, _ := asrMap["endTime"].(json.Number).Int64()
-									content, _ := asrMap["content"].(string)
-									fmt.Printf("taskId=%s，文字翻译结果=%s，开始时间=%d秒，结束时间=%d秒", taskId, content, startTime, endTime)
-								}
-							}
-						}
-					}
-				}
-			}
-			voiceArray, _ := ret.Get("voiceArray").Array()
-			if voiceArray == nil || len(voiceArray) == 0 {
-				fmt.Printf("暂无翻译数据")
-			} else {
-				for _, result := range voiceArray {
-					if resultMap, ok := result.(map[string]interface{}); ok {
-						taskId := resultMap["taskId"].(string)
-						mainGender := resultMap["mainGender"].(string)
-						_, _ = resultMap["details"].([]interface{})
-						fmt.Printf("taskId=%s，人声属性=%s", taskId, mainGender)
-					}
-				}
-			}
-		} else if status == 1 {
-			fmt.Printf("CHECK TIMEOUT: taskId=%s, status=%d", taskId, status)
-		} else {
-			fmt.Printf("CHECK FAIL: taskId=%s, status=%d", taskId, status)
+			}*/
+		}
+		if result["language"] != nil {
+			//language, _ := resultMap["language"].(map[string]interface{})
+			//taskId, _ := language["taskId"].(string)
+			//dataId, _ := language["dataId"].(string)
+			//callback, _ := language["callback"].(string)
+		}
+		if result["asr"] != nil {
+			//asr, _ := resultMap["asr"].(map[string]interface{})
+			//taskId, _ := asr["taskId"].(string)
+			//dataId, _ := asr["dataId"].(string)
+			//callback, _ := asr["callback"].(string)
+		}
+		if result["voice"] != nil {
+			//voice, _ := resultMap["voice"].(map[string]interface{})
+			//taskId, _ := voice["taskId"].(string)
+			//dataId, _ := voice["dataId"].(string)
+			//callback, _ := voice["callback"].(string)
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

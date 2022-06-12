@@ -19,7 +19,8 @@ http://dun.163.com
 │   └── liveaudio_check.go 直播语音在线检测提交接口演示
 ├── crawler 网站解决方案接口演示
 │   │── crawler_callback.go 网站解决方案检测结果获取接口演示
-│   └── crawler_submit.go 网站解决方案在线检测提交接口演示
+│   │── crawler_submit.go 网站解决方案在线检测提交接口演示
+│   └── crawler_job_submit.go 网站解决方案主站检测任务提交接口演示
 ├── filesolution 文档解决方案接口演示
 │   │── filesolution_callback.go 文档解决方案检测结果获取接口演示
 │   │── filesolution_query.go 文档解决方案结果查询接口演示
@@ -68,13 +69,25 @@ http://dun.163.com
 │   └── videosolution_submit.go 点播音视频解决方案在线检测提交接口演示
 ├── mediasolution 融媒体解决方案接口演示
 │   │── mediasolution_callback.go 融媒体解决方案离线结果获取接口演示
-│   └── mediasolution_submit.go 融媒体解决方案在线检测提交接口演示
+│   │── mediasolution_submit.go 融媒体解决方案在线检测提交接口演示
+│   └── mediasolution_query.go 融媒体解决方案结果查询接口演示
 ├── keyword 敏感词接口演示
 │   │── keyword_submit.go 敏感词提交接口演示
 │   │── keyword_delete.go 敏感词删除接口演示
 │   └── keyword_query.go 敏感词查询接口演示
 ├── list 名单接口演示
-│   └── list_submit.go 名单提交接口演示
+│   │── list_submit.go 名单提交接口演示
+│   │── list_delete.go 名单删除接口演示
+│   │── list_query.go 名单查询接口演示
+│   └── list_update.go 名单修改接口演示
+├── digital 数字阅读解决方案接口演示
+│   │── digital_callback.go 数字阅读解决方案结果获取接口演示
+│   │── digital_submit.go 数字阅读解决方案检测提交接口演示
+│   └── digital_query.go 数字阅读解决方案结果查询接口演示
+├── report 投诉举报解决方案接口演示
+│   │── report_callback.go 投诉举报解决方案结果获取接口演示
+│   │── report_submit.go 投诉举报解决方案检测提交接口演示
+│   └── report_query.go 投诉举报解决方案结果查询接口演示
 └── README.md
 ```
 

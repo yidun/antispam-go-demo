@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : list_submit.go
+@Date : 2022-06-10
+@File : list_update.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -11,7 +11,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/tjfoc/gmsm/sm3"
@@ -26,7 +25,7 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v2/list/submit"
+	apiUrl    = "http://as.dun.163.com/v2/list/update"
 	version   = "v2"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -79,12 +78,12 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	lists := []string{"用户名单1", "用户名单2"}
-	jsonString, _ := json.Marshal(lists)
 	params := url.Values{
-		"listType":   []string{"2"}, //1: 白名单，2: 黑名单，4: 必审名单，8: 预审名单
-		"entityType": []string{"1"}, //1: 用户名单，2: IP名单
-		"entities":   []string{string(jsonString)},
+		"uuid":       []string{"512e7771c3074621914ae1894e0df5c1"},
+		"entity":     []string{"名单1"},
+		"listType":   []string{"2"},
+		"entityType": []string{"1"},
+		"status":     []string{"1"},
 	}
 
 	ret := check(params)
@@ -92,16 +91,8 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		resultArray, _ := ret.Get("result").Array()
-		for _, result := range resultArray {
-			if resultMap, ok := result.(map[string]interface{}); ok {
-				//uuid := resultMap["uuid"].(string)
-				//entity := resultMap["entity"].(string)
-				//entityType, _ := resultMap["entityType"].(json.Number).Int64()
-				exist := resultMap["exist"].(bool)
-				fmt.Printf("名单是否已存在: %t", exist)
-			}
-		}
+		result, _ := ret.Get("result").Bool()
+		fmt.Printf("Update success:  %t", result)
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

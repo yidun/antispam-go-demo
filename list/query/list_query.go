@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : list_submit.go
+@Date : 2022-06-10
+@File : list_query.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v2/list/submit"
+	apiUrl    = "http://as.dun.163yun.com/v2/list/pageQuery"
 	version   = "v2"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
@@ -79,12 +79,13 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	lists := []string{"用户名单1", "用户名单2"}
-	jsonString, _ := json.Marshal(lists)
 	params := url.Values{
-		"listType":   []string{"2"}, //1: 白名单，2: 黑名单，4: 必审名单，8: 预审名单
-		"entityType": []string{"1"}, //1: 用户名单，2: IP名单
-		"entities":   []string{string(jsonString)},
+		"pageNum":    []string{"1"},
+		"pageSize":   []string{"pageSize"},
+		"startTime":  []string{"1598951727666"},
+		"endTime":    []string{"1598961727666"},
+		"listType":   []string{"2"},
+		"entityType": []string{"1"},
 	}
 
 	ret := check(params)
@@ -92,16 +93,22 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		resultArray, _ := ret.Get("result").Array()
-		for _, result := range resultArray {
-			if resultMap, ok := result.(map[string]interface{}); ok {
-				//uuid := resultMap["uuid"].(string)
-				//entity := resultMap["entity"].(string)
-				//entityType, _ := resultMap["entityType"].(json.Number).Int64()
-				exist := resultMap["exist"].(bool)
-				fmt.Printf("名单是否已存在: %t", exist)
-			}
-		}
+		result, _ := ret.Get("result").Map()
+		count, _ := result["count"].(json.Number).Int64()
+		rows := result["rows"].([]interface{})
+		fmt.Printf("count: %d, rows:%s", count, rows)
+		//for _, row := range rows {
+		//if rowMap, ok := row.(map[string]interface{}); ok {
+		//listType, _ := rowMap["listType"].(json.Number).Int64()
+		//entityType, _ := rowMap["entityType"].(json.Number).Int64()
+		//productId, _ := rowMap["productId"].(json.Number).Int64()
+		//targetId, _ := rowMap["targetId"].(json.Number).Int64()
+		//entity, _ := rowMap["entity"].(string)
+		//releaseTime, _ := rowMap["releaseTime"].(json.Number).Int64()
+		//source, _ := rowMap["source"].(json.Number).Int64()
+		//spamType, _ := rowMap["spamType"].(json.Number).Int64()
+		//}
+		//}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

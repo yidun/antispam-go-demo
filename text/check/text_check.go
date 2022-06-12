@@ -25,8 +25,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v3/text/check"
-	version    = "v3.1"
+	apiUrl     = "http://as.dun.163.com/v5/text/check"
+	version    = "v5.2"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -99,24 +99,24 @@ func main() {
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		result := ret.Get("result")
-		action, _ := result.Get("action").Int()
-		taskId, _ := result.Get("taskId").String()
-		labelArray, _ := result.Get("labels").Array()
-		//for _, labelItem := range labelArray {
-		//	if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-		//		label, _ := labelItemMap["label"].(json.Number).Int64()
-		//		level, _ := labelItemMap["level"].(json.Number).Int64()
-		//		details := labelItemMap["details"].(map[string]interface{})
-		//		hintArray := details["hint"].([]interface{})
-		//		subLabels := labelItemMap["subLabels"].([]interface{})
-		//	}
-		//}
-		if action == 0 {
-			fmt.Printf("taskId: %s, 文本机器检测结果: 通过", taskId)
-		} else if action == 1 {
-			fmt.Printf("taskId: %s, 文本机器检测结果: 嫌疑, 需人工复审, 分类信息如下: %s", taskId, labelArray)
-		} else if action == 2 {
-			fmt.Printf("taskId=%s, 文本机器检测结果: 不通过, 分类信息如下: %s", taskId, labelArray)
+		antispam := ret.Get("antispam")
+		if antispam != nil {
+			taskId, _ := antispam.Get("taskId").String()
+			//dataId, _ := antispam.Get("dataId").String()
+			suggestion, _ := result.Get("suggestion").Int()
+			//suggestionLevel, _ := result.Get("suggestionLevel").Int()
+			//resultType, _ := result.Get("resultType").Int()
+			//censorType, _ := result.Get("censorType").Int()
+			//strategyVersions, _ := result.Get("strategyVersions").Array()
+			//isRelatedHit, _ := result.Get("isRelatedHit").Bool()
+			labels, _ := result.Get("labels").Array()
+			if suggestion == 0 {
+				fmt.Printf("taskId: %s, 文本机器检测结果: 通过", taskId)
+			} else if suggestion == 1 {
+				fmt.Printf("taskId: %s, 文本机器检测结果: 嫌疑, 需人工复审, 分类信息如下: %s", taskId, labels)
+			} else if suggestion == 2 {
+				fmt.Printf("taskId=%s, 文本机器检测结果: 不通过, 分类信息如下: %s", taskId, labels)
+			}
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

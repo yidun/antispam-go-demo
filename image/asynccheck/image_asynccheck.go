@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v4/image/asyncCheck"
-	version    = "v4"
+	apiUrl     = "http://as.dun.163.com/v5/image/asyncCheck"
+	version    = "v5"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -105,13 +105,15 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		resultArray, _ := ret.Get("result").Array()
-		for _, result := range resultArray {
-			if resultMap, ok := result.(map[string]interface{}); ok {
-				name := resultMap["name"].(string)
-				taskId := resultMap["taskId"].(string)
-				status, _ := resultMap["status"].(json.Number).Int64()
-				fmt.Printf("taskId=%s，status=%d，name=%s", taskId, status, name)
+		result, _ := ret.Get("result").Map()
+		_, _ = result["dealingCount"].(json.Number).Int64()
+		checkImages := result["checkImages"].([]interface{})
+		for _, checkImageItem := range checkImages {
+			if checkImageMap, ok := checkImageItem.(map[string]interface{}); ok {
+				dataId, _ := checkImageMap["dataId"].(string)
+				name, _ := checkImageMap["name"].(string)
+				taskId, _ := checkImageMap["taskId"].(string)
+				fmt.Printf("dataId=%s，name=%s，taskId=%s", dataId, name, taskId)
 			}
 		}
 	} else {

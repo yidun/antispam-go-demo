@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/video/query/task"
-	version    = "v1"
+	apiUrl     = "http://as.dun.163.com/v4/video/query/task"
+	version    = "v4"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -93,35 +93,24 @@ func main() {
 		resultArray, _ := ret.Get("result").Array()
 		for _, result := range resultArray {
 			if resultMap, ok := result.(map[string]interface{}); ok {
-				status, _ := resultMap["status"].(json.Number).Int64()
-				if status != 0 {
-					fmt.Printf("获取结果异常, status: %d", status)
-					continue
-				}
-				taskId, _ := resultMap["taskId"].(string)
-				callback, _ := resultMap["callback"].(string)
-				videoLevel, _ := resultMap["level"].(json.Number).Int64()
-				if videoLevel == 0 {
-					fmt.Printf("正常, callback: %s", callback)
-				} else if videoLevel == 1 || videoLevel == 2 {
-					evidenceArray := resultMap["evidences"].([]interface{})
-					for _, evidence := range evidenceArray {
-						if evidenceMap, ok := evidence.(map[string]interface{}); ok {
-							_, _ = evidenceMap["beginTime"].(json.Number).Int64()
-							_, _ = evidenceMap["endTime"].(json.Number).Int64()
-							_, _ = evidenceMap["type"].(json.Number).Int64()
-							_, _ = evidenceMap["url"].(string)
-							labelArray, _ := evidenceMap["labels"].([]interface{})
-							for _, labelItem := range labelArray {
-								if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-									_, _ = labelItemMap["label"].(json.Number).Int64()
-									_, _ = labelItemMap["level"].(json.Number).Int64()
-									_, _ = labelItemMap["rate"].(json.Number).Float64()
-								}
-							}
-							fmt.Printf("taskId: %s, %d, callback: %s, 证据信息: %s, 证据分类: %s", taskId, videoLevel, callback, evidence, labelArray)
-						}
+				if resultMap["antispam"] != nil {
+					antispam, _ := resultMap["antispam"].(map[string]interface{})
+					status, _ := antispam["status"].(json.Number).Int64()
+					if status != 0 {
+						fmt.Printf("视频异常, status: %d", status)
+						continue
 					}
+					//taskId, _ := antispam["taskId"].(string)
+					//callback, _ := antispam["callback"].(string)
+					//pictureArray := resultMap["pictures"].([]interface{})
+					/*for _, picture := range pictureArray {
+						pictureMap, _ := resultMap["picture"].(map[string]interface{})
+						pictureType, _ := pictureMap["type"].(json.Number).Int64()
+						url, _ := pictureMap["url"].(string
+						startTime, _ := pictureMap["startTime"].(json.Number).Int64()
+						endTime, _ := pictureMap["endTime"].(json.Number).Int64()
+						labelArray := resultMap["labels"].([]interface{})
+					}*/
 				}
 			}
 		}

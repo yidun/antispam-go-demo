@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v4/image/callback/results"
-	version    = "v4"
+	apiUrl     = "http://as.dun.163.com/v5/image/callback/results"
+	version    = "v5"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -87,29 +87,34 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		antispamArray, _ := ret.Get("antispam").Array()
-		if len(antispamArray) == 0 {
-			fmt.Printf("暂时没有人工复审结果需要获取, 请稍后重试!")
-		}
-		for _, antispamResult := range antispamArray {
-			if antispamMap, ok := antispamResult.(map[string]interface{}); ok {
-				name := antispamMap["name"].(string)
-				taskId := antispamMap["taskId"].(string)
-				action, _ := antispamMap["action"].(json.Number).Int64()
-				labelArray := antispamMap["labels"].([]interface{})
-				fmt.Printf("taskId: %s, name: %s, action: %d", taskId, name, action)
-				for _, labelItem := range labelArray {
-					if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-						label, _ := labelItemMap["label"].(json.Number).Int64()
-						level, _ := labelItemMap["level"].(json.Number).Int64()
-						rate, _ := labelItemMap["rate"].(json.Number).Float64()
-						fmt.Printf("label: %d, level: %d, rate: %f", label, level, rate)
+		resultArray, _ := ret.Get("result").Array()
+		for _, result := range resultArray {
+			if resultMap, ok := result.(map[string]interface{}); ok {
+				if resultMap["antispam"] != nil {
+					antispam, _ := resultMap["antispam"].(map[string]interface{})
+					name := antispam["name"].(string)
+					taskId := antispam["taskId"].(string)
+					suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+					_, _ = antispam["resultType"].(json.Number).Int64()
+					_, _ = antispam["censorSource"].(json.Number).Int64()
+					_, _ = antispam["censorTime"].(json.Number).Int64()
+					labelArray := antispam["labels"].([]interface{})
+					fmt.Printf("taskId: %s, name: %s, suggestion: %d", taskId, name, suggestion)
+					for _, labelItem := range labelArray {
+						if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
+							label, _ := labelItemMap["label"].(json.Number).Int64()
+							level, _ := labelItemMap["level"].(json.Number).Int64()
+							rate, _ := labelItemMap["rate"].(json.Number).Float64()
+							fmt.Printf("label: %d, level: %d, rate: %f", label, level, rate)
+						}
 					}
-				}
-				if action == 0 {
-					fmt.Printf("#图片人工复审结果: 最高等级为\"正常\"\n")
-				} else if action == 2 {
-					fmt.Printf("#图片人工复审结果: 最高等级为\"确定\"\n")
+					if suggestion == 0 {
+						fmt.Printf("#图片人工复审结果: 最高等级为\"正常\"\n")
+					} else if suggestion == 2 {
+						fmt.Printf("#图片人工复审结果: 最高等级为\"确定\"\n")
+					}
+				} else {
+					fmt.Printf("暂时没有人工复审结果需要获取, 请稍后重试!")
 				}
 			}
 		}

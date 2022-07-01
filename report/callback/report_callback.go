@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : mediasolution_callback.go
+@Date : 2022-06-10
+@File : report_callback.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v2/mediasolution/callback/results"
-	version   = "v2"
+	apiUrl    = "http://as.dun.163.com/v1/report/callback/results"
+	version   = "v1"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -95,8 +95,9 @@ func main() {
 						_ = antispam["taskId"].(string)
 						_ = antispam["dataId"].(string)
 						_ = antispam["callback"].(string)
+						_, _ = antispam["suggestion"].(json.Number).Int64()
+						_, _ = antispam["resultType"].(json.Number).Int64()
 						_, _ = antispam["checkStatus"].(json.Number).Int64()
-						_, _ = antispam["result"].(json.Number).Int64()
 						if resultMap["evidences"] != nil {
 							evidences, _ := antispam["evidences"].(map[string]interface{})
 							if evidences["texts"] != nil {

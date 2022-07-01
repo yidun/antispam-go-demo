@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : livevideo_submit.go
+@Date : 2022-06-10
+@File : list_delete.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,17 +26,15 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v4/livevideo/submit"
-	version    = "v4"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	apiUrl    = "http://as.dun.163yun.com/v2/list/batchDelete"
+	version   = "v2"
+	secretId  = "your_secret_id"  //产品密钥ID，产品标识
+	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
 
 //请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
-	params["businessId"] = []string{businessId}
 	params["version"] = []string{version}
 	params["timestamp"] = []string{strconv.FormatInt(time.Now().UnixNano()/1000000, 10)}
 	params["nonce"] = []string{strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63n(10000000000), 10)}
@@ -81,12 +79,15 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
+	uuids := []string{"xxxxx", "xxxxx"}
+	entities := []string{"用户名单1", "用户名单2"}
+	uuidString, _ := json.Marshal(uuids)
+	entityString, _ := json.Marshal(entities)
 	params := url.Values{
-		"dataId": []string{"fbfcad1c-dba1-490c-b4de-e784c2691765"},
-		"url":    []string{"http://xxx.xxx.com/xxxx"},
-		//"callback": []string{"{\"p\":\"xx\"}"},
-		//"scFrequency": []string{"5"},
-		//"callbackUrl": []string{"http://***"},  //主动回调地址url,如果设置了则走主动回调逻辑
+		"listType":   []string{"2"}, //1: 白名单，2: 黑名单，4: 必审名单，8: 预审名单
+		"entityType": []string{"1"}, //1: 用户名单，2: IP名单
+		"uuids":      []string{string(uuidString)},
+		"entities":   []string{string(entityString)},
 	}
 
 	ret := check(params)
@@ -94,14 +95,8 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result, _ := ret.Get("result").Map()
-		status, _ := result["status"].(json.Number).Int64()
-		taskId := result["taskId"].(string)
-		if status == 0 {
-			fmt.Printf("提交成功!, taskId: %s", taskId)
-		} else {
-			fmt.Printf("提交失败!")
-		}
+		result, _ := ret.Get("result").Bool()
+		fmt.Printf("Delete success:  %t", result)
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

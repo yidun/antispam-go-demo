@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v1/list/submit"
-	version   = "v1"
+	apiUrl    = "http://as.dun.163.com/v2/list/submit"
+	version   = "v2"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -84,7 +84,7 @@ func main() {
 	params := url.Values{
 		"listType":   []string{"2"}, //1: 白名单，2: 黑名单，4: 必审名单，8: 预审名单
 		"entityType": []string{"1"}, //1: 用户名单，2: IP名单
-		"lists":      []string{string(jsonString)},
+		"entities":   []string{string(jsonString)},
 	}
 
 	ret := check(params)
@@ -92,8 +92,16 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result, _ := ret.Get("result").Bool()
-		fmt.Printf("名单提交结果: %t", result)
+		resultArray, _ := ret.Get("result").Array()
+		for _, result := range resultArray {
+			if resultMap, ok := result.(map[string]interface{}); ok {
+				//uuid := resultMap["uuid"].(string)
+				//entity := resultMap["entity"].(string)
+				//entityType, _ := resultMap["entityType"].(json.Number).Int64()
+				exist := resultMap["exist"].(bool)
+				fmt.Printf("名单是否已存在: %t", exist)
+			}
+		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v3/text/callback/results"
-	version    = "v3.1"
+	apiUrl     = "http://as.dun.163.com/v5/text/callback/results"
+	version    = "v5.2"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -93,22 +93,26 @@ func main() {
 		}
 		for _, result := range resultArray {
 			if resultMap, ok := result.(map[string]interface{}); ok {
-				action, _ := resultMap["action"].(json.Number).Int64()
-				taskId := resultMap["taskId"].(string)
-				callback := resultMap["callback"].(string)
-				labelArray := resultMap["labels"].([]interface{})
-				//for _, labelItem := range labelArray {
-				//	if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-				//		label, _ := labelItemMap["label"].(json.Number).Int64()
-				//		level, _ := labelItemMap["level"].(json.Number).Int64()
-				//		details := labelItemMap["details"].(map[string]interface{})
-				//		hintAarray := labelItemMap["hint"].([]interface{})
-				//	}
-				//}
-				if action == 0 {
-					fmt.Printf("taskId: %s, callback： %s，文本查询结果: 通过", taskId, callback)
-				} else if action == 2 {
-					fmt.Printf("taskId: %s, callback： %s，文本查询结果: 不通过, 分类信息如下: %s", taskId, callback, labelArray)
+				if resultMap["antispam"] != nil {
+					antispam, _ := resultMap["antispam"].(map[string]interface{})
+					taskId := antispam["taskId"].(string)
+					//dataId := antispam["dataId"].(string)
+					suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+					//remark := antispam["remark"].(string)
+					//resultType, _ := antispam["resultType"].(json.Number).Int64()
+					callback := antispam["callback"].(string)
+					//censorType, _ := antispam["censorType"].(json.Number).Int64()
+					//censorSource, _ := antispam["censorSource"].(json.Number).Int64()
+					//censorRound, _ := antispam["censorRound"].(json.Number).Int64()
+					//censorTime, _ := antispam["censorTime"].(json.Number).Int64()
+					//censorLabels := resultMap["censorLabels"].([]interface{})
+					//isRelatedHit := antispam["isRelatedHit"].(bool)
+					labelArray := resultMap["labels"].([]interface{})
+					if suggestion == 0 {
+						fmt.Printf("taskId: %s, callback： %s，文本查询结果: 通过", taskId, callback)
+					} else if suggestion == 2 {
+						fmt.Printf("taskId: %s, callback： %s，文本查询结果: 不通过, 分类信息如下: %s", taskId, callback, labelArray)
+					}
 				}
 			}
 		}

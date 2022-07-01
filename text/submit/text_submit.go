@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/text/submit"
-	version    = "v1"
+	apiUrl     = "http://as.dun.163.com/v5/text/submit"
+	version    = "v5"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -86,11 +86,11 @@ func main() {
 
 	text1 := map[string]string{
 		"dataId":  "ebfcad1c-dba1-490c-b4de-e784c2691768",
-		"content": "易盾测试内容！v1接口!",
+		"content": "易盾测试内容！v5接口!",
 		"action":  "0"}
 	text2 := map[string]string{
 		"dataId":  "ebfcad1c-dba1-490c-b4de-e784c2691767",
-		"content": "批量提交内容！v1接口!",
+		"content": "批量提交内容！v5接口!",
 		"action":  "1"}
 	texts = append(texts, text1, text2)
 	jsonString, _ := json.Marshal(texts)

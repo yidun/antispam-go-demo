@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as.dun.163.com/v1/crawler/callback/results"
-	version   = "v1.0"
+	apiUrl    = "http://as.dun.163.com/v3/crawler/callback/results"
+	version   = "v3.0"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -91,17 +91,21 @@ func main() {
 		} else {
 			for _, result := range resultArray {
 				if resultMap, ok := result.(map[string]interface{}); ok {
-					taskId := resultMap["taskId"].(string)
-					result, _ := resultMap["result"].(json.Number).Int64()
-					dataId, _ := resultMap["dataId"].(string)
-					var callback string
-					if resultMap["callback"] == nil {
-						callback = ""
+					if antispam, ok := resultMap["antispam"].(map[string]interface{}); ok {
+						taskId := antispam["taskId"].(string)
+						dataId, _ := antispam["dataId"].(string)
+						suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+						var callback string
+						if antispam["callback"] == nil {
+							callback = ""
+						} else {
+							callback = antispam["callback"].(string)
+						}
+						evidences := resultMap["evidences"].(map[string]interface{})
+						fmt.Printf("SUCCESS: dataId=%s, taskId=%s, suggestion=%d, callback=%s, evidences=%s", dataId, taskId, suggestion, callback, evidences)
 					} else {
-						callback = resultMap["callback"].(string)
+
 					}
-					evidences := resultMap["evidences"].(map[string]interface{})
-					fmt.Printf("SUCCESS: dataId=%s, taskId=%s, result=%d, callback=%s, evidences=%s", dataId, taskId, result, callback, evidences)
 				}
 			}
 		}

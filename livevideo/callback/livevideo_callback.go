@@ -11,6 +11,7 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/tjfoc/gmsm/sm3"
@@ -25,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v2/livevideo/callback/results"
-	version    = "v2.1"
+	apiUrl     = "http://as.dun.163.com/v4/livevideo/callback/results"
+	version    = "v4"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -89,21 +90,28 @@ func main() {
 		resultArray, _ := ret.Get("result").Array()
 		for _, result := range resultArray {
 			if resultMap, ok := result.(map[string]interface{}); ok {
-				taskId := resultMap["taskId"].(string)
-				callback := resultMap["callback"].(string)
-				evidence := resultMap["evidence"].(map[string]interface{})
-				labelArray := resultMap["labels"].([]interface{})
-				if labelArray != nil && len(labelArray) == 0 { //检测正常
-					fmt.Printf("正常, taskId: %s, callback: %s, 证据信息: %s", taskId, callback, evidence)
-				} else if len(labelArray) > 0 { //检测异常
-					//for _, labelItem := range labelArray {
-					//	if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-					//		//label, _ := labelItemMap["label"].(json.Number).Int64()
-					//		//level, _ := labelItemMap["level"].(json.Number).Int64()
-					//		//rate, _ := labelItemMap["rate"].(json.Number).Float64()
-					//		fmt.Printf("异常, taskId: %s, callback: %s, 分类: %s, 证据信息: %s", taskId, callback, labelItem, evidence)
-					//	}
-					//}
+				if resultMap["antispam"] != nil {
+					antispam, _ := resultMap["antispam"].(map[string]interface{})
+					//taskId := antispam["taskId"].(string)
+					//dataId := antispam["dataId"].(string)
+					//censorSource, _ := antispam["censorSource"].(json.Number).Int64()
+					status, _ := antispam["status"].(json.Number).Int64()
+					if status == 2 {
+						//evidence := antispam["evidence"].(map[string]interface{})
+						labelArray := antispam["labels"].([]interface{})
+						if len(labelArray) > 0 { //检测异常
+							//for _, labelItem := range labelArray {
+							//	if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
+							//		//label, _ := labelItemMap["label"].(json.Number).Int64()
+							//		//level, _ := labelItemMap["level"].(json.Number).Int64()
+							//		//rate, _ := labelItemMap["rate"].(json.Number).Float64()
+							//		fmt.Printf("异常, taskId: %s, callback: %s, 分类: %s, 证据信息: %s", taskId, callback, labelItem, evidence)
+							//	}
+							//}
+						}
+					} else {
+						fmt.Printf("检测未成功, status: %d", status)
+					}
 				}
 			}
 		}

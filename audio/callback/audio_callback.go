@@ -11,7 +11,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/tjfoc/gmsm/sm3"
@@ -26,8 +25,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v3/audio/callback/results"
-	version    = "v3.3"             //点播语音版本v3.2及以上二级细分类结构进行调整
+	apiUrl     = "http://as.dun.163.com/v4/audio/callback/results"
+	version    = "v4"               //点播语音版本v3.2及以上二级细分类结构进行调整
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -87,62 +86,51 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		resultArray, _ := ret.Get("antispam").Array()
+		resultArray, _ := ret.Get("result").Array()
 		if resultArray == nil || len(resultArray) == 0 {
 			fmt.Printf("暂时没有结果需要获取, 请稍后重试!")
 		} else {
 			for _, result := range resultArray {
 				if resultMap, ok := result.(map[string]interface{}); ok {
-					taskId := resultMap["taskId"].(string)
-					asrStatus, _ := resultMap["asrStatus"].(json.Number).Int64()
-					if asrStatus == 4 {
-						asrResult, _ := resultMap["asrResult"].(json.Number).Int64()
-						fmt.Printf("检测失败: taskId=%s, asrResult=%d", taskId, asrResult)
-					} else {
-						action, _ := resultMap["action"].(json.Number).Int64()
-						labelArray := resultMap["labels"].([]interface{})
-						if action == 0 {
-							fmt.Printf("taskId=%s, 结果: 通过", taskId)
-						} else if action == 1 || action == 2 {
-							for _, labelItem := range labelArray {
-								if labelItemMap, ok := labelItem.(map[string]interface{}); ok {
-									_, _ = labelItemMap["label"].(json.Number).Int64()
-									_, _ = labelItemMap["level"].(json.Number).Int64()
-									// 注意二级细分类结构
-									subLabels := labelItemMap["subLabels"].([]interface{})
-									if subLabels != nil && len(subLabels) > 0 {
-										for _, subLabelItem := range subLabels {
-											if subLabelMap, ok := subLabelItem.(map[string]interface{}); ok {
-												_, _ = subLabelMap["subLabel"].(string)
-												details := subLabelMap["details"].(map[string]interface{})
-												_, _ = details["hint"].([]interface{})
-											}
-										}
+					if resultMap["antispam"] != nil {
+						/*antispam, _ := resultMap["antispam"].(map[string]interface{})
+						taskId := antispam["taskId"].(string)
+						status, _ := antispam["status"].(json.Number).Int64()
+						if status == 2 {
+							fmt.Printf("CHECK SUCCESS: taskId=%s", taskId)
+							suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+							resultType, _ := antispam["resultType"].(json.Number).Int64()
+							segmentArray := resultMap["segments"].([]interface{})
+							if segmentArray == nil && len(segmentArray) > 0 {
+								fmt.Printf("暂无反垃圾检测数据")
+							} else {
+								for _, segment := range segmentArray {
+									if segmentMap, ok := segment.(map[string]interface{}); ok {
+										startTime, _ := segmentMap["startTime"].(json.Number).Int64()
+										endTime, _ := segmentMap["endTime"].(json.Number).Int64()
+										content, _ := segmentMap["content"].(string)
 									}
 								}
 							}
-							var printString string
-							if action == 1 {
-								printString = "不确定"
-							} else {
-								printString = "不通过"
-							}
-							fmt.Printf("taskId=%s, 结果: %s，证据信息如下: %s", taskId, printString, labelArray)
-						}
-						segments := resultMap["segment"].([]interface{})
-						if segments != nil && len(segments) > 0 {
-							for _, segment := range segments {
-								if segmentMap, ok := segment.(map[string]interface{}); ok {
-									startTime, _ := segmentMap["startTime"].(json.Number).Int64()
-									endTime, _ := segmentMap["endTime"].(json.Number).Int64()
-									content, _ := segmentMap["content"].(string)
-									label, _ := segmentMap["label"].(json.Number).Int64()
-									level, _ := segmentMap["level"].(json.Number).Int64()
-									fmt.Printf("taskId=%s，开始时间：%d秒，结束时间：%d秒，内容：%s， label:%d, level:%d",
-										taskId, startTime, endTime, content, label, level)
-								}
-							}
-						}
+						}*/
+					}
+					if resultMap["language"] != nil {
+						//language, _ := resultMap["language"].(map[string]interface{})
+						//taskId, _ := language["taskId"].(string)
+						//dataId, _ := language["dataId"].(string)
+						//callback, _ := language["callback"].(string)
+					}
+					if resultMap["asr"] != nil {
+						//asr, _ := resultMap["asr"].(map[string]interface{})
+						//taskId, _ := asr["taskId"].(string)
+						//dataId, _ := asr["dataId"].(string)
+						//callback, _ := asr["callback"].(string)
+					}
+					if resultMap["voice"] != nil {
+						//voice, _ := resultMap["voice"].(map[string]interface{})
+						//taskId, _ := voice["taskId"].(string)
+						//dataId, _ := voice["dataId"].(string)
+						//callback, _ := voice["callback"].(string)
 					}
 				}
 			}

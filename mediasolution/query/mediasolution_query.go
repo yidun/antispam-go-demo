@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : livevideo_submit.go
+@Date : 2022-06-10
+@File : mediasolution_query.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v4/livevideo/submit"
-	version    = "v4"
+	apiUrl     = "http://as.dun.163.com/v2/mediasolution/callback/query"
+	version    = "v2"
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -81,26 +81,29 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	params := url.Values{
-		"dataId": []string{"fbfcad1c-dba1-490c-b4de-e784c2691765"},
-		"url":    []string{"http://xxx.xxx.com/xxxx"},
-		//"callback": []string{"{\"p\":\"xx\"}"},
-		//"scFrequency": []string{"5"},
-		//"callbackUrl": []string{"http://***"},  //主动回调地址url,如果设置了则走主动回调逻辑
-	}
+	taskIds := []string{"c679d93d4a8d411cbe3454214d4b1fd7", "49800dc7877f4b2a9d2e1dec92b988b6"}
+	jsonString, _ := json.Marshal(taskIds)
+	params := url.Values{"taskIds": []string{string(jsonString)}}
 
 	ret := check(params)
 
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result, _ := ret.Get("result").Map()
-		status, _ := result["status"].(json.Number).Int64()
-		taskId := result["taskId"].(string)
-		if status == 0 {
-			fmt.Printf("提交成功!, taskId: %s", taskId)
-		} else {
-			fmt.Printf("提交失败!")
+		resultArray, _ := ret.Get("result").Array()
+		for _, result := range resultArray {
+			if resultMap, ok := result.(map[string]interface{}); ok {
+				if antispam, ok := resultMap["antispam"].(map[string]interface{}); ok {
+					// checkStatus, _ := antispam["checkStatus"].(json.Number).Int64()
+					dataId := resultMap["dataId"].(string)
+					suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+					taskId := resultMap["taskId"].(string)
+					callback := resultMap["callback"].(string)
+					// resultType, _ := antispam["resultType"].(json.Number).Int64()
+					evidences := resultMap["evidences"].(map[string]interface{})
+					fmt.Printf("SUCCESS: dataId=%s, taskId=%s, suggestion=%d, callback=%s, evidences=%s", dataId, taskId, suggestion, callback, evidences)
+				}
+			}
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

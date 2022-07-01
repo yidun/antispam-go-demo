@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v3/liveaudio/callback/results"
-	version    = "v3"               //直播语音版本v2.1及以上二级细分类结构进行调整
+	apiUrl     = "http://as.dun.163.com/v4/liveaudio/callback/results"
+	version    = "v4"               //直播语音版本v2.1及以上二级细分类结构进行调整
 	secretId   = "your_secret_id"   //产品密钥ID，产品标识
 	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
@@ -153,20 +153,18 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result, _ := ret.Get("result").Map()
-		antispamArray, _ := result["antispam"].([]interface{})
-		if antispamArray == nil || len(antispamArray) == 0 {
-			fmt.Printf("暂时没有结果需要获取, 请稍后重试!")
-		} else {
-			for _, result := range antispamArray {
-				if resultMap, ok := result.(map[string]interface{}); ok {
-					taskId := resultMap["taskId"].(string)
-					callback := resultMap["callback"].(string)
-					dataId := resultMap["dataId"].(string)
+		resultArray, _ := ret.Get("result").Array()
+		for _, result := range resultArray {
+			if resultMap, ok := result.(map[string]interface{}); ok {
+				if resultMap["antispam"] != nil {
+					antispam, _ := resultMap["antispam"].(map[string]interface{})
+					taskId := antispam["taskId"].(string)
+					//status, _ := antispam["status"].(json.Number).Int64()
+					callback := antispam["callback"].(string)
+					dataId := antispam["dataId"].(string)
 					fmt.Printf("taskId:%s, callback:%s, dataId:%s", taskId, callback, dataId)
-
-					evidences, _ := resultMap["evidences"].(map[string]interface{})
-					reviewEvidences, _ := resultMap["reviewEvidences"].(map[string]interface{})
+					evidences, _ := antispam["evidences"].(map[string]interface{})
+					reviewEvidences, _ := antispam["reviewEvidences"].(map[string]interface{})
 					if evidences != nil {
 						parseMachine(evidences, taskId)
 					} else if reviewEvidences != nil {
@@ -175,18 +173,12 @@ func main() {
 						fmt.Printf("Invalid result: %s", result)
 					}
 				}
-			}
-		}
-		asrArray, _ := result["asr"].([]interface{})
-		if asrArray == nil || len(asrArray) == 0 {
-			fmt.Printf("暂时没有结果需要获取, 请稍后重试!")
-		} else {
-			for _, result := range asrArray {
-				if resultMap, ok := result.(map[string]interface{}); ok {
-					taskId := resultMap["taskId"].(string)
-					startTime, _ := resultMap["startTime"].(json.Number).Int64()
-					endTime, _ := resultMap["endTime"].(json.Number).Int64()
-					content, _ := resultMap["content"].(string)
+				if resultMap["asr"] != nil {
+					asr, _ := resultMap["asr"].(map[string]interface{})
+					taskId := asr["taskId"].(string)
+					startTime, _ := asr["startTime"].(json.Number).Int64()
+					endTime, _ := asr["endTime"].(json.Number).Int64()
+					content := asr["content"].(string)
 					fmt.Printf("taskId=%s，content=%s，startTime=%d秒，endTime=%d秒", taskId, content, startTime, endTime)
 				}
 			}

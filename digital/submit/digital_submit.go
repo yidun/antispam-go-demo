@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : livevideo_submit.go
+@Date : 2022-06-10
+@File : digital_submit.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -26,17 +26,15 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v4/livevideo/submit"
-	version    = "v4"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	apiUrl    = "http://as.dun.163.com/v2/digital/submit"
+	version   = "v2"
+	secretId  = "your_secret_id"  //产品密钥ID，产品标识
+	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
 
 //请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
-	params["businessId"] = []string{businessId}
 	params["version"] = []string{version}
 	params["timestamp"] = []string{strconv.FormatInt(time.Now().UnixNano()/1000000, 10)}
 	params["nonce"] = []string{strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63n(10000000000), 10)}
@@ -81,26 +79,36 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
+	var arr []map[string]string
+	text := map[string]string{
+		"type":   "text",
+		"data":   "融媒体文本段落",
+		"dataId": "02",
+	}
+	image := map[string]string{
+		"type":   "image",
+		"data":   "http://xxx",
+		"dataId": "01",
+	}
+
+	arr = append(arr, text, image)
+	jsonString, _ := json.Marshal(arr)
 	params := url.Values{
-		"dataId": []string{"fbfcad1c-dba1-490c-b4de-e784c2691765"},
-		"url":    []string{"http://xxx.xxx.com/xxxx"},
-		//"callback": []string{"{\"p\":\"xx\"}"},
-		//"scFrequency": []string{"5"},
-		//"callbackUrl": []string{"http://***"},  //主动回调地址url,如果设置了则走主动回调逻辑
+		"bookId":  []string{"xxxxxxxx"},
+		"type":    []string{"1"},
+		"content": []string{string(jsonString)},
 	}
 
 	ret := check(params)
-
+	// 展示了异步结果返回示例，同步结果返回示例请参考官网开发文档
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		result, _ := ret.Get("result").Map()
-		status, _ := result["status"].(json.Number).Int64()
-		taskId := result["taskId"].(string)
-		if status == 0 {
-			fmt.Printf("提交成功!, taskId: %s", taskId)
-		} else {
-			fmt.Printf("提交失败!")
+		if antispam, ok := result["antispam"].(map[string]interface{}); ok {
+			taskId := antispam["taskId"].(string)
+			dataId := antispam["dataId"].(string)
+			fmt.Printf("SUBMIT SUCCESS: taskId=%s, dataId=%s", taskId, dataId)
 		}
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)

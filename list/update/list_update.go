@@ -1,7 +1,7 @@
 /*
 @Author : yidun_dev
-@Date : 2020-01-20
-@File : livevideo_submit.go
+@Date : 2022-06-10
+@File : list_update.go
 @Version : 1.0
 @Golang : 1.13.5
 @Doc : http://dun.163.com/api.html
@@ -11,7 +11,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/tjfoc/gmsm/sm3"
@@ -26,17 +25,15 @@ import (
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v4/livevideo/submit"
-	version    = "v4"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	apiUrl    = "http://as.dun.163.com/v2/list/update"
+	version   = "v2"
+	secretId  = "your_secret_id"  //产品密钥ID，产品标识
+	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
 
 //请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
-	params["businessId"] = []string{businessId}
 	params["version"] = []string{version}
 	params["timestamp"] = []string{strconv.FormatInt(time.Now().UnixNano()/1000000, 10)}
 	params["nonce"] = []string{strconv.FormatInt(rand.New(rand.NewSource(time.Now().UnixNano())).Int63n(10000000000), 10)}
@@ -82,11 +79,11 @@ func genSignature(params url.Values) string {
 
 func main() {
 	params := url.Values{
-		"dataId": []string{"fbfcad1c-dba1-490c-b4de-e784c2691765"},
-		"url":    []string{"http://xxx.xxx.com/xxxx"},
-		//"callback": []string{"{\"p\":\"xx\"}"},
-		//"scFrequency": []string{"5"},
-		//"callbackUrl": []string{"http://***"},  //主动回调地址url,如果设置了则走主动回调逻辑
+		"uuid":       []string{"512e7771c3074621914ae1894e0df5c1"},
+		"entity":     []string{"名单1"},
+		"listType":   []string{"2"},
+		"entityType": []string{"1"},
+		"status":     []string{"1"},
 	}
 
 	ret := check(params)
@@ -94,14 +91,8 @@ func main() {
 	code, _ := ret.Get("code").Int()
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
-		result, _ := ret.Get("result").Map()
-		status, _ := result["status"].(json.Number).Int64()
-		taskId := result["taskId"].(string)
-		if status == 0 {
-			fmt.Printf("提交成功!, taskId: %s", taskId)
-		} else {
-			fmt.Printf("提交失败!")
-		}
+		result, _ := ret.Get("result").Bool()
+		fmt.Printf("Update success:  %t", result)
 	} else {
 		fmt.Printf("ERROR: code=%d, msg=%s", code, message)
 	}

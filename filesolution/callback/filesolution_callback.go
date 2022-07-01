@@ -11,7 +11,6 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/tjfoc/gmsm/sm3"
@@ -26,8 +25,8 @@ import (
 )
 
 const (
-	apiUrl    = "http://as-file.dun.163.com/v1/file/callback/results"
-	version   = "v1.1"
+	apiUrl    = "http://as-file.dun.163.com/v2/file/callback/results"
+	version   = "v2.0"
 	secretId  = "your_secret_id"  //产品密钥ID，产品标识
 	secretKey = "your_secret_key" //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
 )
@@ -91,17 +90,15 @@ func main() {
 		} else {
 			for _, resultItem := range resultArray {
 				if resultMap, ok := resultItem.(map[string]interface{}); ok {
-					taskId := resultMap["taskId"].(string)
-					dataId := resultMap["dataId"].(string)
-					result, _ := resultMap["result"].(json.Number).Int64()
-					var callback string
-					if resultMap["callback"] == nil {
-						callback = ""
-					} else {
-						callback = resultMap["callback"].(string)
+					if resultMap["antispam"] != nil {
+						antispam, _ := resultMap["antispam"].(map[string]interface{})
+						taskId := antispam["taskId"].(string)
+						dataId := antispam["dataId"].(string)
+						//resultType, _ := antispam["resultType"].(json.Number).Int64()
+						//suggestion, _ := antispam["suggestion"].(json.Number).Int64()
+						evidences, _ := antispam["evidences"].(map[string]interface{})
+						fmt.Printf("SUCCESS: dataId=%s, taskId=%s, evidences=%s", dataId, taskId, evidences)
 					}
-					evidences := resultMap["evidences"].(map[string]interface{})
-					fmt.Printf("SUCCESS: dataId=%s, taskId=%s, result=%d, callback=%s, evidences=%s", dataId, taskId, result, callback, evidences)
 				}
 			}
 		}

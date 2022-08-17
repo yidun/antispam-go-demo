@@ -12,8 +12,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	simplejson "github.com/bitly/go-simplejson"
-	"github.com/tjfoc/gmsm/sm3"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -22,17 +20,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	simplejson "github.com/bitly/go-simplejson"
+	"github.com/tjfoc/gmsm/sm3"
 )
 
 const (
 	apiUrl     = "http://as.dun.163.com/v5/text/check"
 	version    = "v5.2"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	secretId   = "yidun_secret_id"   //产品密钥ID，产品标识
+	secretKey  = "yidun_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
+	businessId = "yidun_business_id" //业务ID，易盾根据产品业务特点分配
 )
 
-//请求易盾接口
+// 请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
 	params["businessId"] = []string{businessId}
@@ -56,7 +57,7 @@ func check(params url.Values) *simplejson.Json {
 	return result
 }
 
-//生成签名信息
+// 生成签名信息
 func genSignature(params url.Values) string {
 	var paramStr string
 	keys := make([]string, 0, len(params))
@@ -99,17 +100,17 @@ func main() {
 	message, _ := ret.Get("msg").String()
 	if code == 200 {
 		result := ret.Get("result")
-		antispam := ret.Get("antispam")
+		antispam := result.Get("antispam")
 		if antispam != nil {
 			taskId, _ := antispam.Get("taskId").String()
 			//dataId, _ := antispam.Get("dataId").String()
-			suggestion, _ := result.Get("suggestion").Int()
-			//suggestionLevel, _ := result.Get("suggestionLevel").Int()
-			//resultType, _ := result.Get("resultType").Int()
-			//censorType, _ := result.Get("censorType").Int()
-			//strategyVersions, _ := result.Get("strategyVersions").Array()
-			//isRelatedHit, _ := result.Get("isRelatedHit").Bool()
-			labels, _ := result.Get("labels").Array()
+			suggestion, _ := antispam.Get("suggestion").Int()
+			//suggestionLevel, _ := antispam.Get("suggestionLevel").Int()
+			//resultType, _ := antispam.Get("resultType").Int()
+			//censorType, _ := antispam.Get("censorType").Int()
+			//strategyVersions, _ := antispam.Get("strategyVersions").Array()
+			//isRelatedHit, _ := antispam.Get("isRelatedHit").Bool()
+			labels, _ := antispam.Get("labels").Array()
 			if suggestion == 0 {
 				fmt.Printf("taskId: %s, 文本机器检测结果: 通过", taskId)
 			} else if suggestion == 1 {

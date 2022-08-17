@@ -13,8 +13,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	simplejson "github.com/bitly/go-simplejson"
-	"github.com/tjfoc/gmsm/sm3"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -23,17 +21,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	simplejson "github.com/bitly/go-simplejson"
+	"github.com/tjfoc/gmsm/sm3"
 )
 
 const (
-	apiUrl     = "http://as.dun.163.com/v1/text/submit/task"
+	apiUrl     = "http://as.dun.163.com/v1/text/query/task"
 	version    = "v1"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	secretId   = "yidun_secret_id"   //产品密钥ID，产品标识
+	secretKey  = "yidun_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
+	businessId = "yidun_business_id" //业务ID，易盾根据产品业务特点分配
 )
 
-//请求易盾接口
+// 请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
 	params["businessId"] = []string{businessId}
@@ -57,7 +58,7 @@ func check(params url.Values) *simplejson.Json {
 	return result
 }
 
-//生成签名信息
+// 生成签名信息
 func genSignature(params url.Values) string {
 	var paramStr string
 	keys := make([]string, 0, len(params))
@@ -81,7 +82,7 @@ func genSignature(params url.Values) string {
 }
 
 func main() {
-	taskIds := []string{"c679d93d4a8d411cbe3454214d4b1fd7", "49800dc7877f4b2a9d2e1dec92b988b6"}
+	taskIds := []string{"po174t6r23c4mj309i8jvt0g00109vy4"}
 	jsonString, _ := json.Marshal(taskIds)
 	params := url.Values{"taskIds": []string{string(jsonString)}}
 
@@ -96,7 +97,7 @@ func main() {
 				action, _ := resultMap["action"].(json.Number).Int64()
 				taskId := resultMap["taskId"].(string)
 				//status, _ := resultMap["status"].(json.Number).Int64()
-				callback := resultMap["callback"].(string)
+				callback, _ := resultMap["callback"].(string)
 				labelArray := resultMap["labels"].([]interface{})
 				//for _, labelItem := range labelArray {
 				//	if labelItemMap, ok := labelItem.(map[string]interface{}); ok {

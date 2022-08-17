@@ -13,8 +13,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	simplejson "github.com/bitly/go-simplejson"
-	"github.com/tjfoc/gmsm/sm3"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -23,17 +21,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	simplejson "github.com/bitly/go-simplejson"
+	"github.com/tjfoc/gmsm/sm3"
 )
 
 const (
 	apiUrl     = "http://as.dun.163.com/v5/text/batch-check"
 	version    = "v5.2"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	secretId   = "yidun_secret_id"   //产品密钥ID，产品标识
+	secretKey  = "yidun_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
+	businessId = "yidun_business_id" //业务ID，易盾根据产品业务特点分配
 )
 
-//请求易盾接口
+// 请求易盾接口
 func check(params url.Values) *simplejson.Json {
 	params["secretId"] = []string{secretId}
 	params["businessId"] = []string{businessId}
@@ -57,7 +58,7 @@ func check(params url.Values) *simplejson.Json {
 	return result
 }
 
-//生成签名信息
+// 生成签名信息
 func genSignature(params url.Values) string {
 	var paramStr string
 	keys := make([]string, 0, len(params))
@@ -117,7 +118,7 @@ func main() {
 					antispam, _ := resultMap["antispam"].(map[string]interface{})
 					dataId := antispam["dataId"].(string)
 					taskId := antispam["taskId"].(string)
-					suggestion, _ := resultMap["suggestion"].(json.Number).Int64()
+					suggestion, _ := antispam["suggestion"].(json.Number).Int64()
 					//resultType, _ := resultMap["resultType"].(json.Number).Int64()
 					//censorType, _ := resultMap["censorType"].(json.Number).Int64()
 					fmt.Printf("dataId: %s, 批量文本提交返回taskId: %s\n", dataId, taskId)
@@ -132,11 +133,11 @@ func main() {
 						}
 					}
 					if suggestion == 0 {
-						fmt.Printf("taskId: %s, 文本机器检测结果: 通过", taskId)
+						fmt.Printf("taskId: %s, 文本机器检测结果: 通过 \n", taskId)
 					} else if suggestion == 1 {
-						fmt.Printf("taskId: %s, 文本机器检测结果: 嫌疑, 需人工复审, 分类信息如下: %s", taskId, labelArray)
+						fmt.Printf("taskId: %s, 文本机器检测结果: 嫌疑, 需人工复审, 分类信息如下: %s \n", taskId, labelArray)
 					} else if suggestion == 2 {
-						fmt.Printf("taskId=%s, 文本机器检测结果: 不通过, 分类信息如下: %s", taskId, labelArray)
+						fmt.Printf("taskId=%s, 文本机器检测结果: 不通过, 分类信息如下: %s \n", taskId, labelArray)
 					}
 				}
 			}

@@ -13,8 +13,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	simplejson "github.com/bitly/go-simplejson"
-	"github.com/tjfoc/gmsm/sm3"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -23,17 +21,20 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	simplejson "github.com/bitly/go-simplejson"
+	"github.com/tjfoc/gmsm/sm3"
 )
 
 const (
 	apiUrl     = "http://as.dun.163.com/v5/text/callback/results"
 	version    = "v5.2"
-	secretId   = "your_secret_id"   //产品密钥ID，产品标识
-	secretKey  = "your_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-	businessId = "your_business_id" //业务ID，易盾根据产品业务特点分配
+	secretId   = "yidun_secret_id"   //产品密钥ID，产品标识
+	secretKey  = "yidun_secret_key"  //产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
+	businessId = "yidun_business_id" //业务ID，易盾根据产品业务特点分配
 )
 
-//请求易盾接口
+// 请求易盾接口
 func check() *simplejson.Json {
 	params := url.Values{}
 	params["secretId"] = []string{secretId}
@@ -58,7 +59,7 @@ func check() *simplejson.Json {
 	return result
 }
 
-//生成签名信息
+// 生成签名信息
 func genSignature(params url.Values) string {
 	var paramStr string
 	keys := make([]string, 0, len(params))
@@ -100,7 +101,7 @@ func main() {
 					suggestion, _ := antispam["suggestion"].(json.Number).Int64()
 					//remark := antispam["remark"].(string)
 					//resultType, _ := antispam["resultType"].(json.Number).Int64()
-					callback := antispam["callback"].(string)
+					callback, _ := antispam["callback"].(string)
 					//censorType, _ := antispam["censorType"].(json.Number).Int64()
 					//censorSource, _ := antispam["censorSource"].(json.Number).Int64()
 					//censorRound, _ := antispam["censorRound"].(json.Number).Int64()

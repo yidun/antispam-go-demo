@@ -6,6 +6,10 @@ http://dun.163.com
 
 - 文件说明
 ```
+
+├── aigc AIGC流式检测解决方案接口演示
+│   │── aigc_callback.go AIGC流式检测解决方案获取离线结果接口演示
+│   └── aigc_check.go AIGC流式检测解决方案检测提交接口演示
 ├── audio 语音接口演示
 │   │── audio_callback.go 点播语音检测结果获取接口演示
 │   │── audio_query.go 点播语音结果查询接口演示
